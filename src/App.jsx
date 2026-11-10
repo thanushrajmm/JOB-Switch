@@ -1161,6 +1161,51 @@ export default function App() {
     showToast(`Moved "${subTitle}" to ${formatPrettyDate(toDate)}!`);
   };
 
+  const handleRemoveSubtopicFromDay = (subtopicId, fromDate) => {
+    const sub = findSubtopicById(subtopicId);
+    const subTitle = sub ? sub.title : findSubtopicTitle(subtopicId);
+
+    // 1. Remove task from all dayLogs plans & uncheck from daily logs
+    let updatedDayLogs = { ...dayLogs };
+    Object.keys(updatedDayLogs).forEach(dateKey => {
+      const log = updatedDayLogs[dateKey];
+      if (log && log.plan) {
+        const filteredPlan = log.plan.filter(p => p.subtopicId !== subtopicId && !p.title.includes(subTitle));
+        const filteredTopics = (log.topics || []).filter(id => id !== subtopicId);
+        updatedDayLogs[dateKey] = {
+          ...log,
+          plan: filteredPlan,
+          topics: filteredTopics
+        };
+      }
+    });
+    setDayLogs(updatedDayLogs);
+
+    // 2. Clear addedToDate in curriculum domains
+    const updatedDomains = domains.map(d => ({
+      ...d,
+      topics: d.topics.map(t => ({
+        ...t,
+        sections: t.sections.map(s => ({
+          ...s,
+          subtopics: s.subtopics.map(item => {
+            if (item.id === subtopicId) {
+              const copy = { ...item };
+              delete copy.addedToDate;
+              return copy;
+            }
+            return item;
+          })
+        }))
+      }))
+    }));
+
+    setDomains(updatedDomains);
+    setRescheduleSubtopic(null);
+    playChime();
+    showToast(`Removed "${subTitle}" from Day Plan!`);
+  };
+
   const handleUpdateSubtopicNotionAndNotes = (subtopicId, notionUrl, notes) => {
     const updatedDomains = domains.map(d => ({
       ...d,
@@ -1776,6 +1821,13 @@ export default function App() {
                                         >
                                           <span>✓ {formatPrettyDate(addedDate)}</span>
                                           <Clock className="w-3 h-3 opacity-70" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleRemoveSubtopicFromDay(sub.id, addedDate)}
+                                          className="p-1 text-stone-400 hover:text-rose-500 rounded border border-transparent hover:border-stone-200 dark:hover:border-stone-700 transition"
+                                          title="Remove date / Unassign from day"
+                                        >
+                                          <XCircle className="w-3.5 h-3.5" />
                                         </button>
                                       </div>
                                     ) : (
@@ -3918,14 +3970,22 @@ export default function App() {
               />
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-              <button onClick={() => setRescheduleSubtopic(null)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+            <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800">
               <button
-                onClick={() => handleRescheduleSubtopic(rescheduleSubtopic.id, rescheduleSubtopic.currentDate, rescheduleTargetDate)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl font-medium"
+                onClick={() => handleRemoveSubtopicFromDay(rescheduleSubtopic.id, rescheduleSubtopic.currentDate)}
+                className="px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl font-medium transition"
               >
-                Move to {formatPrettyDate(rescheduleTargetDate)}
+                Remove from Day Plan
               </button>
+              <div className="flex space-x-2">
+                <button onClick={() => setRescheduleSubtopic(null)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+                <button
+                  onClick={() => handleRescheduleSubtopic(rescheduleSubtopic.id, rescheduleSubtopic.currentDate, rescheduleTargetDate)}
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl font-medium"
+                >
+                  Move to {formatPrettyDate(rescheduleTargetDate)}
+                </button>
+              </div>
             </div>
           </div>
         </div>
