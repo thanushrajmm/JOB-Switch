@@ -47,6 +47,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
+// ================= INITIAL STARTER BLUEPRINT (PROPEERS STRUCTURE) =================
 const DEFAULT_CURRICULUM = [
   {
     id: 'dom-java-devops',
@@ -115,6 +116,7 @@ const DEFAULT_CURRICULUM = [
   }
 ];
 
+// Curated 1-Click Deep Search Portals (Pre-filtered for India, 1-3 YOE)
 const HIRING_PORTALS = [
   {
     name: 'LinkedIn Jobs 24h',
@@ -169,6 +171,7 @@ const KANBAN_STAGES = [
   { id: 'Rejected', label: 'Rejected', color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20', icon: '⛔' }
 ];
 
+// Default Flashcard Deck for SDE (2 YOE Switch)
 const DEFAULT_FLASHCARDS = [
   {
     id: 'fc-1',
@@ -212,6 +215,7 @@ const DEFAULT_FLASHCARDS = [
   }
 ];
 
+// ================= DEFAULT ATS-OPTIMIZED RESUME BLUEPRINT =================
 const DEFAULT_RESUME_DATA = {
   header: {
     fullName: 'YOUR NAME',
@@ -228,9 +232,9 @@ const DEFAULT_RESUME_DATA = {
   settings: {
     fontFamily: 'serif',
     fontSize: 'base',
-    rightLabelSize: 'sm',
+    rightLabelSize: 'sm', // 'xs' (10px), 'sm' (11px), 'base' (12px), 'lg' (13.5px)
     margins: 'normal',
-    spacing: 'compact'
+    spacing: 'compact' // 'compact' (Strict 1 Page) or 'normal'
   },
   sections: [
     {
@@ -345,6 +349,7 @@ export default function App() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => getTodayDateString());
   const [calendarMonthDate, setCalendarMonthDate] = useState(() => new Date());
 
+  // Inject web fonts into main document so live preview always matches PDF
   useEffect(() => {
     const existing = document.getElementById('jobswitch-web-fonts');
     if (!existing) {
@@ -356,11 +361,13 @@ export default function App() {
     }
   }, []);
 
+  // Core Data
   const [domains, setDomains] = useState(() => {
     const saved = localStorage.getItem('omniswitch_react_domains_v1');
     return saved ? JSON.parse(saved) : DEFAULT_CURRICULUM;
   });
 
+  // Resume Maker State
   const [resumeData, setResumeData] = useState(() => {
     const saved = localStorage.getItem('omniswitch_resume_data_v1');
     return saved ? JSON.parse(saved) : DEFAULT_RESUME_DATA;
@@ -376,6 +383,7 @@ export default function App() {
     return domains[0]?.topics[0]?.id || null;
   });
 
+  // Flashcards State
   const [flashcards, setFlashcards] = useState(() => {
     const saved = localStorage.getItem('omniswitch_flashcards_v1');
     return saved ? JSON.parse(saved) : DEFAULT_FLASHCARDS;
@@ -393,11 +401,13 @@ export default function App() {
     localStorage.setItem('omniswitch_flashcards_v1', JSON.stringify(flashcards));
   }, [flashcards]);
 
+  // Daily Logs & Sync
   const [dayLogs, setDayLogs] = useState(() => {
     const saved = localStorage.getItem('omniswitch_react_daylogs_v1');
     return saved ? JSON.parse(saved) : {};
   });
 
+  // User Discovered Jobs & Kanban Applications
   const [discoveredJobs, setDiscoveredJobs] = useState(() => {
     const saved = localStorage.getItem('omniswitch_react_discovered_jobs_v1');
     return saved ? JSON.parse(saved) : [];
@@ -423,6 +433,7 @@ export default function App() {
     ];
   });
 
+  // Modals
   const [modalAddDomainOpen, setModalAddDomainOpen] = useState(false);
   const [modalAddTopicOpen, setModalAddTopicOpen] = useState(false);
   const [modalAddSectionOpen, setModalAddSectionOpen] = useState(false);
@@ -434,9 +445,11 @@ export default function App() {
   const [stageTransitionTarget, setStageTransitionTarget] = useState('Tech Round');
   const [stageTransitionNote, setStageTransitionNote] = useState('');
 
+  // Expandable Notes & Notion drawer states
   const [expandedSubtopicNotes, setExpandedSubtopicNotes] = useState({});
   const [expandedTaskNotes, setExpandedTaskNotes] = useState({});
 
+  // Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (message) => {
@@ -454,9 +467,11 @@ export default function App() {
     setExpandedTaskNotes(prev => ({ ...prev, [taskId]: !prev[taskId] }));
   };
 
+  // Reschedule Subtopic Modal State
   const [rescheduleSubtopic, setRescheduleSubtopic] = useState(null);
   const [rescheduleTargetDate, setRescheduleTargetDate] = useState(() => getOffsetDateString(1));
 
+  // Portals state
   const [hiringPortals, setHiringPortals] = useState(() => {
     const saved = localStorage.getItem('omniswitch_react_portals_v1');
     return saved ? JSON.parse(saved) : HIRING_PORTALS;
@@ -467,6 +482,7 @@ export default function App() {
   const [newPortalDesc, setNewPortalDesc] = useState('');
   const [newPortalTag, setNewPortalTag] = useState('Custom Portal');
 
+  // Form Inputs
   const [domainTitleInput, setDomainTitleInput] = useState('');
   const [topicTitleInput, setTopicTitleInput] = useState('');
   const [sectionTitleInput, setSectionTitleInput] = useState('');
@@ -475,6 +491,7 @@ export default function App() {
   const [dailyPlanInput, setDailyPlanInput] = useState('');
   const [searchJobQuery, setSearchJobQuery] = useState('');
 
+  // Discovered Job Form (Manual entry)
   const [newJobCompany, setNewJobCompany] = useState('');
   const [newJobRole, setNewJobRole] = useState('');
   const [newJobUrl, setNewJobUrl] = useState('');
@@ -483,6 +500,7 @@ export default function App() {
   const [newJobTags, setNewJobTags] = useState('Java, Spring Boot, Microservices');
   const [newJobDescription, setNewJobDescription] = useState('');
 
+  // Persistence
   useEffect(() => {
     localStorage.setItem('omniswitch_react_domains_v1', JSON.stringify(domains));
   }, [domains]);
@@ -507,6 +525,7 @@ export default function App() {
     localStorage.setItem('omniswitch_react_portals_v1', JSON.stringify(hiringPortals));
   }, [hiringPortals]);
 
+  // Shared font family resolver ensuring 100% parity between preview and PDF
   const getSelectedFontFamilyCss = (fontKey) => {
     switch (fontKey) {
       case 'garamond':
@@ -521,6 +540,7 @@ export default function App() {
     }
   };
 
+  // Audio Chime
   const playChime = () => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -543,6 +563,7 @@ export default function App() {
     } catch (e) {}
   };
 
+  // Standalone Window PDF Printing that avoids iframe sandboxing issues
   const handlePrintResume = () => {
     const printContent = document.getElementById('resume-printable-document');
     if (!printContent) {
@@ -564,6 +585,7 @@ export default function App() {
             <head>
               <title>${resumeData.header.fullName || 'Resume'} - ATS Optimized</title>
               <meta charset="utf-8" />
+              <!-- Exact Google Web Fonts matching live preview -->
               <link rel="preconnect" href="https://fonts.googleapis.com">
               <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
               <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -801,6 +823,7 @@ export default function App() {
     return streak;
   }, [dayLogs, applications]);
 
+  // Flashcards Management
   const handleToggleFlipCard = (cardId) => {
     setFlippedCards(prev => ({ ...prev, [cardId]: !prev[cardId] }));
   };
@@ -837,6 +860,7 @@ export default function App() {
     showToast('Flashcard added to board!');
   };
 
+  // Domain & Curriculum Handlers
   const handleCreateDomain = () => {
     if (!domainTitleInput.trim()) return;
     const newDom = {
@@ -1272,6 +1296,7 @@ export default function App() {
     });
   };
 
+  // Job Radar Handlers
   const handleSaveDiscoveredJob = () => {
     if (!newJobCompany.trim() || !newJobUrl.trim()) return;
     const newJob = {
@@ -1438,6 +1463,7 @@ export default function App() {
     };
   }, [selectedCalendarDate, dayLogs, applications]);
 
+  // Flashcards Filtering
   const filteredFlashcards = useMemo(() => {
     return flashcards.filter(fc => {
       if (flashcardDomainFilter !== 'ALL' && fc.domain !== flashcardDomainFilter) return false;
@@ -1453,6 +1479,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0B0F17] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200">
+      {/* ================= HEADER ================= */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#0B0F17]/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -1464,7 +1491,7 @@ export default function App() {
                 <span className="font-bold text-base tracking-tight text-stone-900 dark:text-stone-100">Job Switch</span>
                 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 font-medium">Studio</span>
               </div>
-              <p className="text-xs text-stone-500 hidden sm:block">Full-Stack (2 YOE) → Cloud, Distributed & Applied AI SWE</p>
+              <p className="text-xs text-stone-500 hidden sm:block">Full-Stack (2 YOE) &rarr; Cloud, Distributed & Applied AI SWE</p>
             </div>
           </div>
 
@@ -1499,6 +1526,7 @@ export default function App() {
           </div>
         </div>
 
+        {/* Tab Navigation */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex space-x-2 overflow-x-auto py-2">
           {[
             { id: 'curriculum', label: 'Topics to Learn', icon: BookOpen },
@@ -1529,7 +1557,10 @@ export default function App() {
         </div>
       </header>
 
+      {/* ================= MAIN CONTENT ================= */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        {/* 1. TOPICS TO LEARN SECTION */}
         {activeTab === 'curriculum' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1823,8 +1854,2082 @@ export default function App() {
           </div>
         )}
 
-        {/* ... remaining tabs (queue, jobs, applications, calendar, resume, flashcards) ... */}
+        {/* 2. MY DAILY PLAN & QUEUE */}
+        {activeTab === 'queue' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-xs text-stone-400 uppercase font-mono">Working Date</span>
+                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">{workingDate}</h3>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  onClick={() => setWorkingDate(getTodayDateString())}
+                  className={`px-3 py-1.5 rounded-lg border font-medium ${workingDate === getTodayDateString() ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700'}`}
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => setWorkingDate(getOffsetDateString(1))}
+                  className="px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 font-medium"
+                >
+                  Tomorrow (Plan Ahead)
+                </button>
+                <input
+                  type="date"
+                  value={workingDate}
+                  onChange={(e) => setWorkingDate(e.target.value)}
+                  className="bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-white dark:bg-[#121824] p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Tasks & Learned Topics for {workingDate}</h3>
+                  <span className="text-xs font-mono text-stone-400">
+                    {currentPlan.filter(p => p.completed).length} of {currentPlan.length} completed
+                  </span>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={dailyPlanInput}
+                    onChange={(e) => setDailyPlanInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddCustomPlanTask(workingDate, dailyPlanInput)}
+                    placeholder="Write a custom goal (e.g. Solve 2 Two-Pointer questions in LeetCode)..."
+                    className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
+                  />
+                  <button
+                    onClick={() => handleAddCustomPlanTask(workingDate, dailyPlanInput)}
+                    className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl text-xs font-medium transition"
+                  >
+                    Add Task
+                  </button>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  {currentPlan.length === 0 ? (
+                    <div className="p-8 text-center text-stone-400 text-xs">
+                      No tasks yet for this date. Click "+ Add to Day Plan" on any subtopic or add a custom task above.
+                    </div>
+                  ) : (
+                    currentPlan.map(task => {
+                      const isTaskNotesOpen = Boolean(expandedTaskNotes[task.id]);
+                      const hasTaskNotion = Boolean(task.notionUrl && task.notionUrl.trim().length > 0);
+                      const hasTaskNotes = Boolean(task.notes && task.notes.trim().length > 0);
+
+                      return (
+                        <div
+                          key={task.id}
+                          className={`p-3 rounded-xl border transition space-y-2 ${
+                            task.completed
+                              ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-300'
+                              : 'bg-stone-50/50 dark:bg-stone-900/30 border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div
+                              onClick={() => handleTogglePlanTask(task.id, workingDate)}
+                              className="flex items-center space-x-3 flex-1 cursor-pointer select-none"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={task.completed}
+                                onChange={() => {}}
+                                className="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
+                              />
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                <span className={`text-xs ${task.completed ? 'line-through text-stone-400' : 'font-medium'}`}>
+                                  {task.title}
+                                </span>
+                                {hasTaskNotion && (
+                                  <a
+                                    href={task.notionUrl.startsWith('http') ? task.notionUrl : `https://${task.notionUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 hover:underline shrink-0"
+                                    title={task.notionUrl}
+                                  >
+                                    <LinkIcon className="w-2.5 h-2.5" />
+                                    <span>Notion Resources ↗</span>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1.5 pl-2 shrink-0">
+                              <button
+                                onClick={() => toggleTaskNotes(task.id)}
+                                className={`p-1 px-2 text-[10px] rounded border font-medium flex items-center gap-1 transition ${
+                                  isTaskNotesOpen || hasTaskNotion || hasTaskNotes
+                                    ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800'
+                                    : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:bg-stone-100'
+                                }`}
+                                title="Add/View Notion link and notes"
+                              >
+                                <FileText className="w-3 h-3 text-purple-500" />
+                                <span className="hidden sm:inline">{hasTaskNotion ? 'Notion' : '+ Notion'}</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (task.subtopicId) {
+                                    setRescheduleSubtopic({ id: task.subtopicId, title: task.title, currentDate: workingDate });
+                                    setRescheduleTargetDate(getOffsetDateString(1));
+                                  } else {
+                                    const tomorrow = getOffsetDateString(1);
+                                    handleAddCustomPlanTask(tomorrow, task.title);
+                                    handleDeletePlanTask(task.id, workingDate);
+                                    playChime();
+                                  }
+                                }}
+                                className="p-1 px-2 text-[10px] rounded border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 font-medium flex items-center gap-1 transition"
+                                title="Reschedule to another day"
+                              >
+                                <Clock className="w-3 h-3 text-stone-400" />
+                                <span>Reschedule</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeletePlanTask(task.id, workingDate)}
+                                className="text-stone-400 hover:text-rose-500 p-1"
+                                title="Delete task"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {isTaskNotesOpen && (
+                            <div className="ml-7 p-3 bg-white dark:bg-stone-950/80 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2 animate-in fade-in duration-150">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <label className="text-[11px] font-semibold text-stone-600 dark:text-stone-300 flex items-center gap-1 shrink-0">
+                                  <LinkIcon className="w-3 h-3 text-purple-500" />
+                                  <span>Notion / Resource Link:</span>
+                                </label>
+                                <div className="flex-1 flex gap-1.5">
+                                  <input
+                                    type="url"
+                                    value={task.notionUrl || ''}
+                                    onChange={(e) => handleUpdateTaskNotionAndNotes(task.id, workingDate, e.target.value, task.notes || '')}
+                                    placeholder="https://notion.so/my-workspace/topic-notes..."
+                                    className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-purple-500"
+                                  />
+                                  {hasTaskNotion && (
+                                    <a
+                                      href={task.notionUrl.startsWith('http') ? task.notionUrl : `https://${task.notionUrl}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium flex items-center gap-1 shrink-0 transition"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                      <span>Open</span>
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-[11px] font-semibold text-stone-600 dark:text-stone-300 mb-1">
+                                  Task Notes / Resources:
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={task.notes || ''}
+                                  onChange={(e) => handleUpdateTaskNotionAndNotes(task.id, workingDate, task.notionUrl || '', e.target.value)}
+                                  placeholder="Summary notes, links, or documentation references for this task..."
+                                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs leading-relaxed focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#121824] p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-3">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-stone-400" />
+                  <span>Daily Reflection & Tech Notes</span>
+                </h3>
+                <textarea
+                  rows={8}
+                  value={activeDateLog.notes || ''}
+                  onChange={(e) => {
+                    setDayLogs({
+                      ...dayLogs,
+                      [workingDate]: { ...activeDateLog, notes: e.target.value }
+                    });
+                  }}
+                  placeholder="Record insights: What clicked today? What algorithmic trade-offs or concurrency caveats did you encounter?"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-3 text-xs leading-relaxed focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. PROGRESS CALENDAR & VISUAL DAY-TO-DAY TIMELINE */}
+        {activeTab === 'calendar' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => {
+                    const d = new Date(calendarMonthDate);
+                    d.setMonth(d.getMonth() - 1);
+                    setCalendarMonthDate(d);
+                  }}
+                  className="p-2 rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">
+                  {calendarMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h3>
+                <button
+                  onClick={() => {
+                    const d = new Date(calendarMonthDate);
+                    d.setMonth(d.getMonth() + 1);
+                    setCalendarMonthDate(d);
+                  }}
+                  className="p-2 rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-3 text-xs">
+                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Completed (&ge;1 action)</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-rose-500">
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>Missed</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-[#121824] p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm">
+              <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-mono text-stone-400 font-semibold">
+                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                  <span key={d}>{d}</span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-2">
+                {(() => {
+                  const year = calendarMonthDate.getFullYear();
+                  const month = calendarMonthDate.getMonth();
+                  const firstDay = new Date(year, month, 1).getDay();
+                  const daysInMonth = new Date(year, month + 1, 0).getDate();
+                  const todayStr = getTodayDateString();
+
+                  const cells = [];
+                  for (let i = 0; i < firstDay; i++) {
+                    cells.push(<div key={`empty-${i}`} className="min-h-[105px] bg-stone-50/50 dark:bg-stone-900/20 rounded-xl" />);
+                  }
+
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const dateObj = new Date(year, month, day);
+                    const dateKey = formatDateKey(dateObj);
+                    const isToday = dateKey === todayStr;
+                    const isPast = dateObj <= new Date();
+                    const active = hasDayActivity(dateKey);
+                    const isSelected = selectedCalendarDate === dateKey;
+
+                    const dayLog = dayLogs[dateKey] || { topics: [], plan: [] };
+                    const appEvents = getApplicationEventsForDate(dateKey);
+                    const completedTasksCount = (dayLog.plan || []).filter(p => p.completed).length;
+                    const studiedTopicsCount = (dayLog.topics || []).length;
+
+                    cells.push(
+                      <div
+                        key={dateKey}
+                        onClick={() => setSelectedCalendarDate(dateKey)}
+                        className={`min-h-[105px] p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition select-none ${
+                          isSelected
+                            ? 'ring-2 ring-stone-900 dark:ring-stone-100 bg-stone-50 dark:bg-stone-800/80 shadow-sm'
+                            : 'bg-white dark:bg-stone-900/40 border-stone-200 dark:border-stone-800/60 hover:border-stone-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs font-mono font-bold ${isToday ? 'px-1.5 py-0.5 rounded bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'text-stone-500'}`}>
+                            {day}
+                          </span>
+                          <span className="text-xs">
+                            {active ? '✅' : isPast ? '❌' : '--'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1 my-1">
+                          {appEvents.slice(0, 2).map((evt, idx) => {
+                            const meta = KANBAN_STAGES.find(s => s.id === evt.stage) || { icon: '📨', color: 'bg-blue-500/10 text-blue-500' };
+                            return (
+                              <div
+                                key={idx}
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-mono truncate border flex items-center gap-1 ${meta.color}`}
+                                title={`${evt.company}: ${evt.stage}`}
+                              >
+                                <span>{meta.icon}</span>
+                                <span className="font-bold truncate">{evt.company}</span>
+                              </div>
+                            );
+                          })}
+
+                          {completedTasksCount > 0 && (
+                            <div className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1 py-0.5 rounded truncate">
+                              ✓ {completedTasksCount} task{completedTasksCount > 1 ? 's' : ''}
+                            </div>
+                          )}
+
+                          {studiedTopicsCount > 0 && (
+                            <div className="text-[9px] font-mono text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 px-1 py-0.5 rounded truncate">
+                              • {studiedTopicsCount} topic{studiedTopicsCount > 1 ? 's' : ''}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return cells;
+                })()}
+              </div>
+            </div>
+
+            {/* Selected Day Inspector Panel */}
+            <div className="bg-white dark:bg-[#121824] p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800 gap-3">
+                <div>
+                  <span className="text-xs font-mono text-stone-400 uppercase">Selected Day Inspector</span>
+                  <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                    <span>{formatPrettyDate(selectedCalendarDate)}</span>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                      {hasDayActivity(selectedCalendarDate) ? '✅ Active' : '❌ Inactive'}
+                    </span>
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setWorkingDate(selectedCalendarDate);
+                      setActiveTab('queue');
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-xs font-medium flex items-center gap-1.5 hover:bg-stone-100"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open in Day Plan</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleAddCustomPlanTask(selectedCalendarDate, 'Self-directed study block');
+                      playChime();
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 text-xs font-medium flex items-center gap-1.5 hover:bg-stone-800"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Mark Day Active ✅</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="p-3 bg-stone-50/70 dark:bg-stone-900/40 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-200 border-b border-stone-200 dark:border-stone-800 pb-1.5">
+                    <span>Tasks & Goals ({inspectDayData.plan.filter(p => p.completed).length}/{inspectDayData.plan.length})</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {inspectDayData.plan.length === 0 ? (
+                      <span className="text-stone-400 italic">No tasks logged.</span>
+                    ) : (
+                      inspectDayData.plan.map(task => (
+                        <div
+                          key={task.id}
+                          onClick={() => handleTogglePlanTask(task.id, selectedCalendarDate)}
+                          className="flex items-center space-x-2 p-1.5 bg-white dark:bg-[#121824] rounded-lg border border-stone-200 dark:border-stone-800 cursor-pointer select-none"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={() => {}}
+                            className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-0"
+                          />
+                          <span className={`truncate text-[11px] ${task.completed ? 'line-through text-stone-400' : 'text-stone-700 dark:text-stone-300 font-medium'}`}>
+                            {task.title}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3 bg-stone-50/70 dark:bg-stone-900/40 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-200 border-b border-stone-200 dark:border-stone-800 pb-1.5">
+                    <span>Subtopics Studied ({inspectDayData.topics.length})</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {inspectDayData.topics.length === 0 ? (
+                      <span className="text-stone-400 italic">No subtopics logged.</span>
+                    ) : (
+                      inspectDayData.topics.map(tId => (
+                        <div key={tId} className="p-1.5 bg-white dark:bg-[#121824] rounded-lg border border-stone-200 dark:border-stone-800 flex items-center justify-between">
+                          <span className="truncate text-[11px] text-stone-700 dark:text-stone-300 font-medium">{findSubtopicTitle(tId)}</span>
+                          <button
+                            onClick={() => handleToggleSubtopic(tId, false, selectedCalendarDate)}
+                            className="text-stone-400 hover:text-rose-500 p-0.5"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3 bg-stone-50/70 dark:bg-stone-900/40 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-200 border-b border-stone-200 dark:border-stone-800 pb-1.5">
+                    <span>Applications & Stage Moves ({inspectDayData.appEvents.length})</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {inspectDayData.appEvents.length === 0 ? (
+                      <span className="text-stone-400 italic">No application actions.</span>
+                    ) : (
+                      inspectDayData.appEvents.map((evt, idx) => {
+                        const meta = KANBAN_STAGES.find(s => s.id === evt.stage) || { icon: '📨', color: 'bg-blue-500/10 text-blue-500' };
+                        return (
+                          <div key={idx} className="p-1.5 bg-white dark:bg-[#121824] rounded-lg border border-stone-200 dark:border-stone-800 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[11px] text-stone-800 dark:text-stone-200">{evt.company}</span>
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono border ${meta.color}`}>
+                                {meta.icon} {evt.stage}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-stone-500 line-clamp-1">{evt.role}</p>
+                            {evt.note && <p className="text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 p-1 rounded">{evt.note}</p>}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. APPLICATIONS KANBAN */}
+        {activeTab === 'applications' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">Job Applications Pipeline</h3>
+                <p className="text-xs text-stone-500">Every application submission and stage advancement is logged to that specific date on your calendar!</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {KANBAN_STAGES.map(stage => {
+                const stageApps = applications.filter(a => a.stage === stage.id);
+                return (
+                  <div key={stage.id} className="bg-white dark:bg-[#121824] rounded-2xl border border-stone-200 dark:border-stone-800/80 p-3 flex flex-col min-h-[450px]">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100 dark:border-stone-800">
+                      <div className="flex items-center space-x-1.5">
+                        <span>{stage.icon}</span>
+                        <h4 className="text-xs font-bold font-mono uppercase text-stone-700 dark:text-stone-300">{stage.label}</h4>
+                      </div>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-500">{stageApps.length}</span>
+                    </div>
+
+                    <div className="space-y-2 flex-1">
+                      {stageApps.map(app => {
+                        const latestHistory = (app.history && app.history[app.history.length - 1]) || { date: app.dateApplied };
+                        return (
+                          <div key={app.id} className="p-3 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2 text-xs">
+                            <div className="flex items-start justify-between">
+                              <span className="font-bold text-stone-900 dark:text-stone-100">{app.company}</span>
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-[10px] font-mono text-stone-400">📅 {latestHistory.date || app.dateApplied}</span>
+                                <button
+                                  onClick={() => handleDeleteApplication(app.id)}
+                                  className="text-stone-400 hover:text-rose-500 p-0.5 transition"
+                                  title="Delete application"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-stone-600 dark:text-stone-400 line-clamp-1">{app.role}</p>
+
+                            <select
+                              value={app.stage}
+                              onChange={(e) => openStageTransitionModal(app, e.target.value)}
+                              className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded-lg p-1 text-[11px] focus:outline-none"
+                            >
+                              {KANBAN_STAGES.map(s => (
+                                <option key={s.id} value={s.id}>{s.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 5. 24H INDIA JOB DISCOVERY & PORTALS RADAR */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#121824] p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">India Hiring Portals &bull; Live Search Launchpad</h3>
+                  <p className="text-xs text-stone-500 mt-0.5">Explore any portal, find the opening, and add it below with the exact URL and description.</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setModalAddPortalOpen(true)}
+                    className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>+ Add Hiring Portal</span>
+                  </button>
+                  <button
+                    onClick={() => setModalAddJobOpen(true)}
+                    className="px-4 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl text-xs font-medium flex items-center gap-1.5 transition shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Discovered Job Link</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {hiringPortals.map((portal, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 bg-stone-50/70 hover:bg-stone-100 dark:bg-stone-900/40 dark:hover:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl flex items-start justify-between transition group"
+                  >
+                    <div className="flex-1 pr-2">
+                      <div className="flex items-center space-x-2">
+                        <a
+                          href={portal.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-xs text-stone-900 dark:text-stone-100 hover:underline"
+                        >
+                          {portal.name}
+                        </a>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400">
+                          {portal.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 mt-1 leading-snug">{portal.desc}</p>
+                    </div>
+
+                    <div className="flex items-center space-x-1 shrink-0">
+                      <a
+                        href={portal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                      {portal.isCustom && (
+                        <button
+                          onClick={() => handleDeletePortal(portal.name)}
+                          className="p-1 text-stone-400 hover:text-rose-500 transition"
+                          title="Delete portal"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100">Discovered Openings ({discoveredJobs.length})</h4>
+                <input
+                  type="text"
+                  placeholder="Filter by company, skill..."
+                  value={searchJobQuery}
+                  onChange={(e) => setSearchJobQuery(e.target.value)}
+                  className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                />
+              </div>
+
+              {discoveredJobs.length === 0 ? (
+                <div className="bg-white dark:bg-[#121824] p-12 text-center rounded-2xl border border-stone-200 dark:border-stone-800/80 text-stone-400 text-xs">
+                  <Compass className="w-8 h-8 mx-auto mb-2 text-stone-300 dark:text-stone-700" />
+                  <p className="font-semibold text-stone-600 dark:text-stone-300">No custom jobs added yet.</p>
+                  <p className="text-stone-400 mt-1">
+                    Open any portal link above, copy the job URL, paste it into <strong>"+ Add Discovered Job Link"</strong>!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {discoveredJobs
+                    .filter(j => j.company.toLowerCase().includes(searchJobQuery.toLowerCase()) || j.role.toLowerCase().includes(searchJobQuery.toLowerCase()))
+                    .map(job => (
+                      <div key={job.id} className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 flex flex-col justify-between space-y-3 shadow-sm">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{job.company}</span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-[10px] font-mono text-stone-400">{job.addedAt}</span>
+                              <button
+                                onClick={() => handleDeleteDiscoveredJob(job.id)}
+                                className="p-1 text-stone-400 hover:text-rose-500 transition rounded"
+                                title="Remove job opening"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs font-semibold text-stone-700 dark:text-stone-300">{job.role}</p>
+
+                          <div className="flex items-center space-x-2 text-[11px] text-stone-500 font-mono">
+                            <MapPin className="w-3 h-3" />
+                            <span>{job.location}</span>
+                          </div>
+
+                          <p className="text-[11px] text-stone-500 line-clamp-3 bg-stone-50 dark:bg-stone-900/50 p-2 rounded-lg font-mono whitespace-pre-wrap">
+                            {job.description}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between gap-2 text-xs">
+                          <a
+                            href={job.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg flex items-center gap-1 font-medium transition"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>View Link</span>
+                          </a>
+
+                          <button
+                            onClick={() => handleApplyAndMoveToKanban(job)}
+                            className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg font-medium transition"
+                          >
+                            Apply & Kanban &rarr;
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 6. ATS RESUME MAKER & LIVE A4 PREVIEW */}
+        {activeTab === 'resume' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">ATS Resume Builder &bull; LaTeX Style</h2>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
+                    Live Real-Time Sync
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Curate your sections, descriptions, and font sizes. Updates instantly on the right sheet. Download cleanly as PDF.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  onClick={() => {
+                    if (confirm('Reset resume to default SDE template?')) {
+                      setResumeData(JSON.parse(JSON.stringify(DEFAULT_RESUME_DATA)));
+                      playChime();
+                      showToast('Resume reset to standard template');
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition"
+                  title="Reset to default SDE resume"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 inline mr-1" />
+                  <span>Reset</span>
+                </button>
+
+                <button
+                  onClick={handleAddResumeSection}
+                  className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 rounded-lg font-medium flex items-center gap-1.5 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Section</span>
+                </button>
+
+                <button
+                  onClick={handlePrintResume}
+                  className="px-4 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm transition"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print / Save as PDF</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+              {/* LEFT COLUMN: CUSTOMIZATION & CURATION EDITOR */}
+              <div className="xl:col-span-5 space-y-4">
+                {/* Typography & Spacing Toolbar */}
+                <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-3">
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-stone-500 pb-2 border-b border-stone-100 dark:border-stone-800">
+                    <Sliders className="w-3.5 h-3.5" />
+                    <span>Styling & Typography Controls</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-1">Font Family</label>
+                      <select
+                        value={resumeData.settings.fontFamily}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          settings: { ...resumeData.settings, fontFamily: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-medium focus:outline-none"
+                      >
+                        <option value="serif">Computer Modern / Times</option>
+                        <option value="garamond">Garamond (Classic)</option>
+                        <option value="sans">Inter (Modern Sans)</option>
+                        <option value="mono">JetBrains Mono</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-1">Base Font Size</label>
+                      <select
+                        value={resumeData.settings.fontSize}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          settings: { ...resumeData.settings, fontSize: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-medium focus:outline-none"
+                      >
+                        <option value="sm">Compact (9.5 pt)</option>
+                        <option value="base">Standard (10.5 pt)</option>
+                        <option value="lg">Relaxed (11.5 pt)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-1">Right Stack Size</label>
+                      <select
+                        value={resumeData.settings.rightLabelSize || 'sm'}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          settings: { ...resumeData.settings, rightLabelSize: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-medium focus:outline-none"
+                      >
+                        <option value="xs">Very Small (10px)</option>
+                        <option value="sm">Small (11px)</option>
+                        <option value="base">Standard (12px)</option>
+                        <option value="lg">Match Body (13.5px)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-1">Page Spacing</label>
+                      <select
+                        value={resumeData.settings.spacing || 'compact'}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          settings: { ...resumeData.settings, spacing: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-medium focus:outline-none"
+                      >
+                        <option value="compact">Compact (Strict 1 Page)</option>
+                        <option value="normal">Standard Spacing</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Header & Personal Info Editor */}
+                <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-500 block pb-2 border-b border-stone-100 dark:border-stone-800">
+                    Candidate Info & Top Links
+                  </span>
+
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-0.5">Full Name</label>
+                      <input
+                        type="text"
+                        value={resumeData.header.fullName}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          header: { ...resumeData.header, fullName: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs font-bold tracking-wide focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] text-stone-500 font-medium mb-0.5">City, State / Country</label>
+                        <input
+                          type="text"
+                          value={resumeData.header.location}
+                          onChange={(e) => setResumeData({
+                            ...resumeData,
+                            header: { ...resumeData.header, location: e.target.value }
+                          })}
+                          className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-stone-500 font-medium mb-0.5">Phone Number</label>
+                        <input
+                          type="text"
+                          value={resumeData.header.phone}
+                          onChange={(e) => setResumeData({
+                            ...resumeData,
+                            header: { ...resumeData.header, phone: e.target.value }
+                          })}
+                          className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs font-mono focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-stone-500 font-medium mb-0.5">Email Address</label>
+                      <input
+                        type="email"
+                        value={resumeData.header.email}
+                        onChange={(e) => setResumeData({
+                          ...resumeData,
+                          header: { ...resumeData.header, email: e.target.value }
+                        })}
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs font-mono focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="pt-2">
+                      <span className="block text-[11px] text-stone-500 font-semibold mb-1">Header Social / Portfolio Links:</span>
+                      <div className="space-y-1.5">
+                        {resumeData.header.links.map((link, idx) => (
+                          <div key={link.id} className="flex gap-1.5 items-center">
+                            <input
+                              type="text"
+                              value={link.label}
+                              onChange={(e) => {
+                                const updatedLinks = [...resumeData.header.links];
+                                updatedLinks[idx].label = e.target.value;
+                                setResumeData({ ...resumeData, header: { ...resumeData.header, links: updatedLinks } });
+                              }}
+                              className="w-24 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-semibold"
+                              placeholder="Label"
+                            />
+                            <input
+                              type="url"
+                              value={link.url}
+                              onChange={(e) => {
+                                const updatedLinks = [...resumeData.header.links];
+                                updatedLinks[idx].url = e.target.value;
+                                setResumeData({ ...resumeData, header: { ...resumeData.header, links: updatedLinks } });
+                              }}
+                              className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5 text-xs font-mono"
+                              placeholder="https://..."
+                            />
+                            <button
+                              onClick={() => {
+                                const updatedLinks = resumeData.header.links.filter(l => l.id !== link.id);
+                                setResumeData({ ...resumeData, header: { ...resumeData.header, links: updatedLinks } });
+                              }}
+                              className="p-1.5 text-stone-400 hover:text-rose-500"
+                              title="Delete Link"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => {
+                            const newLink = { id: 'l-' + Date.now(), label: 'Website', url: 'https://', icon: 'globe' };
+                            setResumeData({
+                              ...resumeData,
+                              header: { ...resumeData.header, links: [...resumeData.header.links, newLink] }
+                            });
+                          }}
+                          className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold hover:underline flex items-center gap-1 pt-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>+ Add Header Link</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Manager */}
+                <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Resume Sections Manager</span>
+                    <button
+                      onClick={handleAddResumeSection}
+                      className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-0.5"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>New Section</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {resumeData.sections.map((section, sIndex) => {
+                      const isActive = activeResumeSectionId === section.id;
+                      return (
+                        <div
+                          key={section.id}
+                          className={`rounded-xl border transition overflow-hidden ${
+                            isActive
+                              ? 'border-stone-900 dark:border-stone-600 bg-stone-50/80 dark:bg-stone-900/50 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800/80 bg-white dark:bg-[#121824]'
+                          }`}
+                        >
+                          <div
+                            onClick={() => setActiveResumeSectionId(section.id)}
+                            className="p-3 flex items-center justify-between cursor-pointer select-none"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="w-2 h-2 rounded-full bg-stone-400" />
+                              <span className="font-bold text-xs tracking-wider text-stone-900 dark:text-stone-100">{section.title}</span>
+                              <span className="text-[10px] font-mono text-stone-400">({section.type})</span>
+                            </div>
+
+                            <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => moveResumeSection(sIndex, -1)}
+                                disabled={sIndex === 0}
+                                className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20"
+                                title="Move Up"
+                              >
+                                <MoveUp className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => moveResumeSection(sIndex, 1)}
+                                disabled={sIndex === resumeData.sections.length - 1}
+                                className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20"
+                                title="Move Down"
+                              >
+                                <MoveDown className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Remove section "${section.title}"?`)) {
+                                    setResumeData({
+                                      ...resumeData,
+                                      sections: resumeData.sections.filter(s => s.id !== section.id)
+                                    });
+                                  }
+                                }}
+                                className="p-1 text-stone-400 hover:text-rose-500"
+                                title="Delete Section"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {isActive && (
+                            <div className="p-3 bg-white dark:bg-stone-950/70 border-t border-stone-200 dark:border-stone-800 space-y-3 text-xs">
+                              <div>
+                                <label className="block text-[11px] text-stone-500 font-medium mb-1">Section Title</label>
+                                <input
+                                  type="text"
+                                  value={section.title}
+                                  onChange={(e) => {
+                                    const updated = [...resumeData.sections];
+                                    updated[sIndex].title = e.target.value.toUpperCase();
+                                    setResumeData({ ...resumeData, sections: updated });
+                                  }}
+                                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-bold tracking-wider text-xs focus:outline-none"
+                                />
+                              </div>
+
+                              {section.type === 'entries' && (
+                                <div className="space-y-4">
+                                  {section.entries.map((entry, eIndex) => (
+                                    <div key={entry.id} className="p-3 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2">
+                                      <div className="flex items-center justify-between pb-1 border-b border-stone-200 dark:border-stone-800">
+                                        <span className="font-semibold text-[11px] text-stone-600 dark:text-stone-300">Item #{eIndex + 1}</span>
+                                        <button
+                                          onClick={() => {
+                                            const updated = [...resumeData.sections];
+                                            updated[sIndex].entries = updated[sIndex].entries.filter(ent => ent.id !== entry.id);
+                                            setResumeData({ ...resumeData, sections: updated });
+                                          }}
+                                          className="text-stone-400 hover:text-rose-500 p-0.5"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                          <label className="block text-[10px] text-stone-500">Primary Title (Role / Project / Degree)</label>
+                                          <input
+                                            type="text"
+                                            value={entry.primaryTitle}
+                                            onChange={(e) => {
+                                              const updated = [...resumeData.sections];
+                                              updated[sIndex].entries[eIndex].primaryTitle = e.target.value;
+                                              setResumeData({ ...resumeData, sections: updated });
+                                            }}
+                                            className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs font-semibold"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[10px] text-stone-500">Right Label (Dates / Stack)</label>
+                                          <input
+                                            type="text"
+                                            value={entry.primaryRight}
+                                            onChange={(e) => {
+                                              const updated = [...resumeData.sections];
+                                              updated[sIndex].entries[eIndex].primaryRight = e.target.value;
+                                              setResumeData({ ...resumeData, sections: updated });
+                                            }}
+                                            className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs font-mono"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                          <label className="block text-[10px] text-stone-500">Sub-Title (Company / College / Tagline)</label>
+                                          <input
+                                            type="text"
+                                            value={entry.subTitle}
+                                            onChange={(e) => {
+                                              const updated = [...resumeData.sections];
+                                              updated[sIndex].entries[eIndex].subTitle = e.target.value;
+                                              setResumeData({ ...resumeData, sections: updated });
+                                            }}
+                                            className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-[10px] text-stone-500">Sub Right (Location / Date)</label>
+                                          <input
+                                            type="text"
+                                            value={entry.subRight}
+                                            onChange={(e) => {
+                                              const updated = [...resumeData.sections];
+                                              updated[sIndex].entries[eIndex].subRight = e.target.value;
+                                              setResumeData({ ...resumeData, sections: updated });
+                                            }}
+                                            className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs font-mono"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[10px] text-stone-500">Project / Demo Link (Optional)</label>
+                                        <input
+                                          type="url"
+                                          value={entry.primaryLink || ''}
+                                          onChange={(e) => {
+                                            const updated = [...resumeData.sections];
+                                            updated[sIndex].entries[eIndex].primaryLink = e.target.value;
+                                            setResumeData({ ...resumeData, sections: updated });
+                                          }}
+                                          placeholder="https://github.com/..."
+                                          className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs font-mono"
+                                        />
+                                      </div>
+
+                                      <div className="pt-1">
+                                        <label className="block text-[10px] text-stone-500 mb-1 font-semibold">Bullet Points:</label>
+                                        <div className="space-y-1.5">
+                                          {(entry.bullets || []).map((bullet, bIndex) => (
+                                            <div key={bIndex} className="flex gap-1 items-start">
+                                              <span className="text-stone-400 font-bold mt-1">&bull;</span>
+                                              <textarea
+                                                rows={2}
+                                                value={bullet}
+                                                onChange={(e) => {
+                                                  const updated = [...resumeData.sections];
+                                                  updated[sIndex].entries[eIndex].bullets[bIndex] = e.target.value;
+                                                  setResumeData({ ...resumeData, sections: updated });
+                                                }}
+                                                className="flex-1 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs leading-relaxed focus:outline-none"
+                                              />
+                                              <button
+                                                onClick={() => {
+                                                  const updated = [...resumeData.sections];
+                                                  updated[sIndex].entries[eIndex].bullets = updated[sIndex].entries[eIndex].bullets.filter((_, idx) => idx !== bIndex);
+                                                  setResumeData({ ...resumeData, sections: updated });
+                                                }}
+                                                className="text-stone-400 hover:text-rose-500 p-1"
+                                                title="Delete bullet"
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                          ))}
+                                          <button
+                                            onClick={() => {
+                                              const updated = [...resumeData.sections];
+                                              if (!updated[sIndex].entries[eIndex].bullets) updated[sIndex].entries[eIndex].bullets = [];
+                                              updated[sIndex].entries[eIndex].bullets.push('Architected feature resulting in 20% latency optimization.');
+                                              setResumeData({ ...resumeData, sections: updated });
+                                            }}
+                                            className="text-[11px] text-purple-600 dark:text-purple-400 hover:underline font-semibold flex items-center gap-1 mt-1"
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                            <span>+ Add Bullet Point</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+
+                                  <button
+                                    onClick={() => {
+                                      const newEntry = {
+                                        id: 'ent-' + Date.now(),
+                                        primaryTitle: 'Role / Project Title',
+                                        primaryRight: 'MM YYYY – MM YYYY',
+                                        subTitle: 'Company / Organization Name',
+                                        subRight: 'City, Country',
+                                        bullets: ['Engineered high-performance module with optimal time complexity.']
+                                      };
+                                      const updated = [...resumeData.sections];
+                                      updated[sIndex].entries.push(newEntry);
+                                      setResumeData({ ...resumeData, sections: updated });
+                                    }}
+                                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 dark:bg-stone-900 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Add Another Entry</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {section.type === 'skills_grid' && (
+                                <div className="space-y-2">
+                                  {section.skillCategories.map((cat, cIndex) => (
+                                    <div key={cIndex} className="p-2 bg-stone-50 dark:bg-stone-900/50 rounded-lg border border-stone-200 dark:border-stone-800 flex flex-col gap-1">
+                                      <div className="flex items-center justify-between">
+                                        <input
+                                          type="text"
+                                          value={cat.label}
+                                          onChange={(e) => {
+                                            const updated = [...resumeData.sections];
+                                            updated[sIndex].skillCategories[cIndex].label = e.target.value;
+                                            setResumeData({ ...resumeData, sections: updated });
+                                          }}
+                                          className="w-40 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1 text-xs font-bold"
+                                        />
+                                        <button
+                                          onClick={() => {
+                                            const updated = [...resumeData.sections];
+                                            updated[sIndex].skillCategories = updated[sIndex].skillCategories.filter((_, idx) => idx !== cIndex);
+                                            setResumeData({ ...resumeData, sections: updated });
+                                          }}
+                                          className="text-stone-400 hover:text-rose-500 p-0.5"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <input
+                                        type="text"
+                                        value={cat.value}
+                                        onChange={(e) => {
+                                          const updated = [...resumeData.sections];
+                                          updated[sIndex].skillCategories[cIndex].value = e.target.value;
+                                          setResumeData({ ...resumeData, sections: updated });
+                                        }}
+                                        className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs font-mono"
+                                      />
+                                    </div>
+                                  ))}
+                                  <button
+                                    onClick={() => {
+                                      const updated = [...resumeData.sections];
+                                      updated[sIndex].skillCategories.push({ label: 'New Category', value: 'Skill A, Skill B, Skill C' });
+                                      setResumeData({ ...resumeData, sections: updated });
+                                    }}
+                                    className="text-[11px] text-purple-600 dark:text-purple-400 hover:underline font-semibold flex items-center gap-1 pt-1"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>+ Add Skill Category</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {section.type === 'tag_list' && (
+                                <div className="space-y-2">
+                                  <label className="block text-[10px] text-stone-500">Comma-separated course titles or skills:</label>
+                                  <textarea
+                                    rows={3}
+                                    value={section.tags.join(', ')}
+                                    onChange={(e) => {
+                                      const updated = [...resumeData.sections];
+                                      updated[sIndex].tags = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
+                                      setResumeData({ ...resumeData, sections: updated });
+                                    }}
+                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 text-xs font-mono focus:outline-none"
+                                  />
+                                </div>
+                              )}
+
+                              {section.type === 'bullet_list' && (
+                                <div className="space-y-1.5">
+                                  {section.bullets.map((b, bIdx) => (
+                                    <div key={bIdx} className="flex gap-1 items-start">
+                                      <span className="text-stone-400 font-bold mt-1">&bull;</span>
+                                      <textarea
+                                        rows={2}
+                                        value={b}
+                                        onChange={(e) => {
+                                          const updated = [...resumeData.sections];
+                                          updated[sIndex].bullets[bIndex] = e.target.value;
+                                          setResumeData({ ...resumeData, sections: updated });
+                                        }}
+                                        className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1.5 text-xs focus:outline-none"
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          const updated = [...resumeData.sections];
+                                          updated[sIndex].bullets = updated[sIndex].bullets.filter((_, idx) => idx !== bIndex);
+                                          setResumeData({ ...resumeData, sections: updated });
+                                        }}
+                                        className="text-stone-400 hover:text-rose-500 p-1"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <button
+                                    onClick={() => {
+                                      const updated = [...resumeData.sections];
+                                      updated[sIndex].bullets.push('Solved 200+ questions on LeetCode.');
+                                      setResumeData({ ...resumeData, sections: updated });
+                                    }}
+                                    className="text-[11px] text-purple-600 dark:text-purple-400 hover:underline font-semibold flex items-center gap-1 pt-1"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>+ Add Bullet</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: REAL-TIME A4 PAPER SHEET PREVIEW */}
+              <div className="xl:col-span-7 flex flex-col items-center">
+                <div className="w-full flex items-center justify-between pb-2 mb-2 px-1 text-xs text-stone-500 font-mono">
+                  <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>A4 1-Page Output</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Type className="w-3 h-3 text-stone-400" />
+                    <span>Font: {resumeData.settings.fontFamily.toUpperCase()}</span>
+                  </span>
+                </div>
+
+                <div
+                  id="resume-printable-document"
+                  className={`w-full max-w-[800px] bg-white text-black shadow-2xl rounded-sm p-6 sm:p-8 border border-stone-300 transition-all duration-150 ${
+                    resumeData.settings.fontSize === 'sm' ? 'text-[12px] leading-[1.28]' :
+                    resumeData.settings.fontSize === 'lg' ? 'text-[14px] leading-[1.42]' :
+                    'text-[12.8px] leading-[1.32]'
+                  }`}
+                  style={{
+                    fontFamily: getSelectedFontFamilyCss(resumeData.settings.fontFamily)
+                  }}
+                >
+                  {/* RESUME HEADER */}
+                  <div className="text-center space-y-0.5 pb-1">
+                    <h1 className="text-2xl sm:text-[26px] font-normal tracking-wide uppercase text-black" style={{ letterSpacing: '0.04em' }}>
+                      {resumeData.header.fullName || 'YOUR NAME'}
+                    </h1>
+                    <div className="text-[11.5px] text-stone-700 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
+                      {resumeData.header.location && <span>{resumeData.header.location}</span>}
+                      {resumeData.header.phone && (
+                        <>
+                          <span>&bull;</span>
+                          <span className="flex items-center gap-1 font-mono">{resumeData.header.phone}</span>
+                        </>
+                      )}
+                      {resumeData.header.email && (
+                        <>
+                          <span>&bull;</span>
+                          <a href={`mailto:${resumeData.header.email}`} className="text-black underline underline-offset-2">
+                            {resumeData.header.email}
+                          </a>
+                        </>
+                      )}
+                    </div>
+
+                    {resumeData.header.links && resumeData.header.links.length > 0 && (
+                      <div className="text-[11px] text-stone-800 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 pt-0.5">
+                        {resumeData.header.links.map((link, idx) => (
+                          <React.Fragment key={link.id}>
+                            {idx > 0 && <span className="text-stone-400">&bull;</span>}
+                            <a
+                              href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-black underline underline-offset-2 hover:text-blue-700 flex items-center gap-1"
+                            >
+                              <span>{link.label}</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-60 print-hidden" />
+                            </a>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RESUME SECTIONS */}
+                  <div className={`mt-1 ${resumeData.settings.spacing === 'compact' ? 'space-y-2' : 'space-y-3'}`}>
+                    {resumeData.sections.map(section => (
+                      <div key={section.id} className="space-y-1">
+                        <div className="border-b border-black pb-0.5 section-header">
+                          <h2 className="text-[12px] font-bold uppercase tracking-wider text-black">
+                            {section.title}
+                          </h2>
+                        </div>
+
+                        {section.type === 'entries' && (
+                          <div className={resumeData.settings.spacing === 'compact' ? 'space-y-1.5' : 'space-y-2'}>
+                            {section.entries.map(entry => (
+                              <div key={entry.id} className="space-y-0.5">
+                                <div className="flex items-baseline justify-between text-black">
+                                  <div className="font-bold flex items-center gap-1.5">
+                                    <span>{entry.primaryTitle}</span>
+                                    {entry.primaryLink && (
+                                      <a
+                                        href={entry.primaryLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-black inline-flex items-center hover:underline"
+                                      >
+                                        <ExternalLink className="w-2.5 h-2.5 opacity-70 print-hidden" />
+                                      </a>
+                                    )}
+                                  </div>
+                                  <span className={`font-medium text-black shrink-0 font-mono ${
+                                    resumeData.settings.rightLabelSize === 'xs' ? 'text-[10px]' :
+                                    resumeData.settings.rightLabelSize === 'sm' ? 'text-[11px]' :
+                                    resumeData.settings.rightLabelSize === 'lg' ? 'text-[13px]' :
+                                    'text-[11.5px]'
+                                  }`}>
+                                    {entry.primaryRight}
+                                  </span>
+                                </div>
+
+                                {(entry.subTitle || entry.subRight) && (
+                                  <div className="flex items-baseline justify-between text-[11.5px] italic text-stone-800">
+                                    <span>{entry.subTitle}</span>
+                                    {entry.subRight && (
+                                      <span className={`not-italic text-stone-700 shrink-0 ${
+                                        resumeData.settings.rightLabelSize === 'xs' ? 'text-[10px]' :
+                                        resumeData.settings.rightLabelSize === 'sm' ? 'text-[11px]' :
+                                        resumeData.settings.rightLabelSize === 'lg' ? 'text-[13px]' :
+                                        'text-[11.5px]'
+                                      }`}>
+                                        {entry.subRight}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {entry.bullets && entry.bullets.length > 0 && (
+                                  <ul className="list-disc ml-4 space-y-0.5 text-stone-900 pt-0.5">
+                                    {entry.bullets.map((bullet, bIdx) => (
+                                      <li key={bIdx} className="pl-0.5">
+                                        <span>{bullet}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.type === 'skills_grid' && (
+                          <div className="space-y-0.5 text-stone-900 pt-0.5">
+                            {section.skillCategories.map((cat, cIdx) => (
+                              <div key={cIdx} className="leading-snug">
+                                <span className="font-bold text-black">{cat.label}: </span>
+                                <span className="text-stone-900">{cat.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.type === 'tag_list' && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-0.5 text-stone-900 pt-0.5 text-[11.5px]">
+                            {section.tags.map((tag, tIdx) => (
+                              <div key={tIdx} className="flex items-center gap-1.5">
+                                <span className="text-black text-xs">&bull;</span>
+                                <span>{tag}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.type === 'bullet_list' && (
+                          <ul className="list-disc ml-4 space-y-0.5 text-stone-900 pt-0.5">
+                            {section.bullets.map((b, bIdx) => (
+                              <li key={bIdx} className="pl-0.5">
+                                <span>{b}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 7. QUICK INTERVIEW PREP (FLASHCARD BOARDS) */}
+        {activeTab === 'flashcards' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                    <span>Quick Interview Prep &bull; Flashcard Boards</span>
+                  </h2>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 font-semibold">
+                    Interactive 3D Flip
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Review high-yield technical interview questions. Click any card to flip and reveal the answer, and track mastery.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setModalAddFlashcardOpen(true)}
+                  className="px-3.5 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Flashcard</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filters & Mastery Stats */}
+            <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-stone-400 font-medium">Domain:</span>
+                <select
+                  value={flashcardDomainFilter}
+                  onChange={(e) => setFlashcardDomainFilter(e.target.value)}
+                  className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none"
+                >
+                  <option value="ALL">All Domains ({flashcards.length})</option>
+                  {flashcardDomainsList.map(dom => (
+                    <option key={dom} value={dom}>{dom}</option>
+                  ))}
+                </select>
+
+                <span className="text-stone-400 font-medium ml-2">Status:</span>
+                <select
+                  value={flashcardStatusFilter}
+                  onChange={(e) => setFlashcardStatusFilter(e.target.value)}
+                  className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none"
+                >
+                  <option value="ALL">All Cards</option>
+                  <option value="review">Needs Review 🔄</option>
+                  <option value="mastered">Mastered ✅</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-3 font-mono text-[11px]">
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                  Mastered: {flashcards.filter(f => f.status === 'mastered').length}
+                </span>
+                <span className="text-stone-400">&bull;</span>
+                <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                  Review: {flashcards.filter(f => f.status === 'review').length}
+                </span>
+              </div>
+            </div>
+
+            {/* Flashcard Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredFlashcards.map(card => {
+                const isFlipped = Boolean(flippedCards[card.id]);
+                const isMastered = card.status === 'mastered';
+
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => handleToggleFlipCard(card.id)}
+                    className={`min-h-[290px] rounded-2xl p-5 border flex flex-col justify-between cursor-pointer select-none transition-all duration-200 shadow-sm relative group ${
+                      isFlipped
+                        ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 border-stone-900 dark:border-stone-100'
+                        : isMastered
+                        ? 'bg-white dark:bg-[#121824] border-emerald-300 dark:border-emerald-800/80 hover:shadow-md'
+                        : 'bg-white dark:bg-[#121824] border-stone-200 dark:border-stone-800/80 hover:border-amber-400/80 hover:shadow-md'
+                    }`}
+                  >
+                    {/* Top Meta Bar */}
+                    <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800/60">
+                      <div className="flex items-center space-x-1.5">
+                        <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${
+                          isFlipped
+                            ? 'bg-stone-800 dark:bg-stone-200 text-stone-200 dark:text-stone-800'
+                            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+                        }`}>
+                          {card.domain}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                        <span className={`text-[10px] font-mono font-bold ${
+                          card.difficulty === 'Hard' ? 'text-rose-500' :
+                          card.difficulty === 'Medium' ? 'text-amber-500' : 'text-emerald-500'
+                        }`}>
+                          {card.difficulty}
+                        </span>
+
+                        <button
+                          onClick={() => handleDeleteFlashcard(card.id)}
+                          className={`p-1 rounded hover:text-rose-500 transition ${
+                            isFlipped ? 'text-stone-400' : 'text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
+                          }`}
+                          title="Delete Card"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card Body: Question (Front) or Answer (Back) */}
+                    <div className="my-auto py-3 space-y-2">
+                      {!isFlipped ? (
+                        <>
+                          <span className="text-[11px] font-mono text-stone-400 uppercase tracking-wider block">Question:</span>
+                          <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 leading-snug">
+                            {card.question}
+                          </h4>
+                          <p className="text-[11px] text-stone-400 italic pt-2 flex items-center gap-1">
+                            <span>👆 Click anywhere to flip & reveal answer</span>
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[11px] font-mono text-amber-400 dark:text-amber-600 uppercase tracking-wider block font-bold">Answer & Key Takeaway:</span>
+                          <p className="text-xs leading-relaxed font-sans whitespace-pre-wrap">
+                            {card.answer}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Bottom Action Footer */}
+                    <div
+                      className={`pt-3 border-t flex items-center justify-between text-xs ${
+                        isFlipped ? 'border-stone-800 dark:border-stone-300' : 'border-stone-100 dark:border-stone-800'
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleToggleFlipCard(card.id)}
+                        className={`text-[11px] font-medium flex items-center gap-1 ${
+                          isFlipped ? 'text-stone-300 dark:text-stone-700 hover:underline' : 'text-stone-500 hover:text-stone-900'
+                        }`}
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>{isFlipped ? 'Show Question' : 'Reveal Answer'}</span>
+                      </button>
+
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => handleUpdateFlashcardStatus(card.id, 'review')}
+                          className={`px-2 py-0.5 text-[10px] rounded font-medium border ${
+                            card.status === 'review'
+                              ? 'bg-amber-500/20 text-amber-500 border-amber-500/40 font-bold'
+                              : 'border-stone-300 dark:border-stone-700 opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          Review 🔄
+                        </button>
+                        <button
+                          onClick={() => handleUpdateFlashcardStatus(card.id, 'mastered')}
+                          className={`px-2 py-0.5 text-[10px] rounded font-medium border ${
+                            card.status === 'mastered'
+                              ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40 font-bold'
+                              : 'border-stone-300 dark:border-stone-700 opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          Mastered ✅
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </main>
+
+      {/* ================= MODALS ================= */}
+
+      {/* Modal: Add Flashcard */}
+      {modalAddFlashcardOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Add Interview Prep Flashcard</span>
+              </h3>
+              <button onClick={() => setModalAddFlashcardOpen(false)} className="text-stone-400 hover:text-stone-600">✕</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-stone-500 mb-1">Domain / Track *</label>
+                <input
+                  type="text"
+                  value={newFcDomain}
+                  onChange={(e) => setNewFcDomain(e.target.value)}
+                  placeholder="e.g. Core Java & Concurrency, Spring Boot, HLD"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-stone-500 mb-1">Difficulty</label>
+                <select
+                  value={newFcDifficulty}
+                  onChange={(e) => setNewFcDifficulty(e.target.value)}
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none"
+                >
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Interview Question *</label>
+              <textarea
+                rows={2}
+                value={newFcQuestion}
+                onChange={(e) => setNewFcQuestion(e.target.value)}
+                placeholder="e.g. How does ConcurrentHashMap achieve high concurrency without locking the entire map?"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none font-semibold text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Answer / Key Points / Architecture *</label>
+              <textarea
+                rows={5}
+                value={newFcAnswer}
+                onChange={(e) => setNewFcAnswer(e.target.value)}
+                placeholder="Explain the solution clearly with keywords (CAS operations, synchronized on first bucket node, lock striping)..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none font-mono text-xs leading-relaxed"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setModalAddFlashcardOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleSaveNewFlashcard} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">
+                Save Flashcard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Domain */}
+      {modalAddDomainOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Add New Domain / Learning Track</h3>
+            <input
+              type="text"
+              value={domainTitleInput}
+              onChange={(e) => setDomainTitleInput(e.target.value)}
+              placeholder="e.g. Distributed Systems & High-Level Design"
+              className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-3 focus:outline-none"
+            />
+            <div className="flex justify-end space-x-2 pt-2">
+              <button onClick={() => setModalAddDomainOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleCreateDomain} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Add Domain</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Main Topic */}
+      {modalAddTopicOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Add Main Topic under "{activeDomain?.title}"</h3>
+            <input
+              type="text"
+              value={topicTitleInput}
+              onChange={(e) => setTopicTitleInput(e.target.value)}
+              placeholder="e.g. Concurrency, Virtual Threads & JVM Memory"
+              className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-3 focus:outline-none"
+            />
+            <div className="flex justify-end space-x-2 pt-2">
+              <button onClick={() => setModalAddTopicOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleCreateTopic} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Add Topic</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Section & Subtopics */}
+      {modalAddSectionOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Add Section to "{activeTopic?.title}"</h3>
+            <div>
+              <label className="block text-stone-600 dark:text-stone-400 mb-1">Section Title</label>
+              <input
+                type="text"
+                value={sectionTitleInput}
+                onChange={(e) => setSectionTitleInput(e.target.value)}
+                placeholder="e.g. Thread Safety, Volatile & JMM"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-3 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-stone-600 dark:text-stone-400 mb-1">Subtopics (One per line)</label>
+              <textarea
+                rows={4}
+                value={sectionSubtopicsInput}
+                onChange={(e) => setSectionSubtopicsInput(e.target.value)}
+                placeholder="Synchronized Blocks & ReentrantLock&#10;Volatile keyword and visibility&#10;Thread-safe Singleton implementation"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-3 font-mono focus:outline-none"
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <button onClick={() => setModalAddSectionOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleCreateSection} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Save Section</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Hiring Portal */}
+      {modalAddPortalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Add Hiring Portal / Board</h3>
+            <div>
+              <label className="block text-stone-500 mb-1">Portal Name *</label>
+              <input
+                type="text"
+                value={newPortalName}
+                onChange={(e) => setNewPortalName(e.target.value)}
+                placeholder="e.g. Wellfound, Hasjob, Foundit"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-stone-500 mb-1">Portal URL *</label>
+              <input
+                type="text"
+                value={newPortalUrl}
+                onChange={(e) => setNewPortalUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-stone-500 mb-1">Description</label>
+              <input
+                type="text"
+                value={newPortalDesc}
+                onChange={(e) => setNewPortalDesc(e.target.value)}
+                placeholder="Brief description of the platform..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-stone-500 mb-1">Category / Tag</label>
+              <input
+                type="text"
+                value={newPortalTag}
+                onChange={(e) => setNewPortalTag(e.target.value)}
+                placeholder="e.g. Startups, Remote, MNCs"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 focus:outline-none"
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setModalAddPortalOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleSaveCustomPortal} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Add Portal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Discovered Job Link (Manual Entry) */}
+      {modalAddJobOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-xl text-xs max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Add Discovered Job Opening</h3>
+                <p className="text-stone-400 text-[11px] mt-0.5">Paste the link and add the JD and details manually.</p>
+              </div>
+              <button onClick={() => setModalAddJobOpen(false)} className="text-stone-400 hover:text-stone-600 text-base">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-stone-600 dark:text-stone-400 font-medium">Application Link URL *</label>
+              <input
+                type="url"
+                value={newJobUrl}
+                onChange={(e) => setNewJobUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono text-xs focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-stone-500 mb-1">Company Name *</label>
+                <input
+                  type="text"
+                  value={newJobCompany}
+                  onChange={(e) => setNewJobCompany(e.target.value)}
+                  placeholder="e.g. Swiggy, Amazon, Zepto"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                />
+              </div>
+              <div>
+                <label className="block text-stone-500 mb-1">Role Title</label>
+                <input
+                  type="text"
+                  value={newJobRole}
+                  onChange={(e) => setNewJobRole(e.target.value)}
+                  placeholder="e.g. SDE II Backend"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-stone-500 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={newJobLocation}
+                  onChange={(e) => setNewJobLocation(e.target.value)}
+                  placeholder="e.g. Bengaluru / Hybrid"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                />
+              </div>
+              <div>
+                <label className="block text-stone-500 mb-1">Required Experience</label>
+                <input
+                  type="text"
+                  value={newJobYoe}
+                  onChange={(e) => setNewJobYoe(e.target.value)}
+                  placeholder="e.g. 1 - 3 Years"
+                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Skills Tags (comma separated)</label>
+              <input
+                type="text"
+                value={newJobTags}
+                onChange={(e) => setNewJobTags(e.target.value)}
+                placeholder="e.g. Java, Spring Boot, Elasticsearch, Kafka"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Job Description (JD)</label>
+              <textarea
+                rows={6}
+                value={newJobDescription}
+                onChange={(e) => setNewJobDescription(e.target.value)}
+                placeholder="Paste the full job description, team details, and key requirements here..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono text-[11px]"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setModalAddJobOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleSaveDiscoveredJob} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Save Opening</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Stage Transition with Specific Date & Notes */}
+      {modalStageTransitionApp && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+              <GitCommit className="w-4 h-4 text-purple-500" />
+              <span>Log Stage Transfer & Date</span>
+            </h3>
+
+            <div>
+              <span className="text-stone-400">Company & Role:</span>
+              <p className="font-bold text-stone-800 dark:text-stone-200">{modalStageTransitionApp.company} &bull; {modalStageTransitionApp.role}</p>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Target Stage</label>
+              <select
+                value={stageTransitionTarget}
+                onChange={(e) => setStageTransitionTarget(e.target.value)}
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2 text-xs"
+              >
+                {KANBAN_STAGES.map(s => (
+                  <option key={s.id} value={s.id}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Date of Transfer (Logs to Calendar) *</label>
+              <input
+                type="date"
+                value={stageTransitionDate}
+                onChange={(e) => setStageTransitionDate(e.target.value)}
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2 font-mono text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Round Feedback / Notes</label>
+              <textarea
+                rows={2}
+                value={stageTransitionNote}
+                onChange={(e) => setStageTransitionNote(e.target.value)}
+                placeholder="e.g. Conducted Live Coding: 2 Medium Trees + Concurrency questions..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2 text-xs"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setModalStageTransitionApp(null)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={confirmStageTransition} className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-medium">Confirm & Log to Date</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Reschedule / Move Subtopic to Another Date */}
+      {rescheduleSubtopic && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-emerald-500" />
+                <span>Reschedule / Move Subtopic</span>
+              </h3>
+              <button onClick={() => setRescheduleSubtopic(null)} className="text-stone-400 hover:text-stone-600">✕</button>
+            </div>
+
+            <div>
+              <span className="text-stone-400 block text-[11px]">Topic to move:</span>
+              <p className="font-bold text-stone-800 dark:text-stone-200 text-xs mt-0.5">{rescheduleSubtopic.title}</p>
+              <span className="text-[11px] font-mono text-stone-500 block mt-1">Currently planned for: {formatPrettyDate(rescheduleSubtopic.currentDate)}</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-[11px] text-stone-500 font-medium">Quick Shortcuts:</span>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setRescheduleTargetDate(getTodayDateString())}
+                  className={`p-2 rounded-lg border text-center font-medium transition ${rescheduleTargetDate === getTodayDateString() ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300'}`}
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => setRescheduleTargetDate(getOffsetDateString(1))}
+                  className={`p-2 rounded-lg border text-center font-medium transition ${rescheduleTargetDate === getOffsetDateString(1) ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300'}`}
+                >
+                  Tomorrow
+                </button>
+                <button
+                  onClick={() => setRescheduleTargetDate(getOffsetDateString(2))}
+                  className={`p-2 rounded-lg border text-center font-medium transition ${rescheduleTargetDate === getOffsetDateString(2) ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300'}`}
+                >
+                  In 2 Days
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 mb-1">Or choose custom target date:</label>
+              <input
+                type="date"
+                value={rescheduleTargetDate}
+                onChange={(e) => setRescheduleTargetDate(e.target.value)}
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono text-xs focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setRescheduleSubtopic(null)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button
+                onClick={() => handleRescheduleSubtopic(rescheduleSubtopic.id, rescheduleSubtopic.currentDate, rescheduleTargetDate)}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl font-medium"
+              >
+                Move to {formatPrettyDate(rescheduleTargetDate)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast Notification */}
       {toastMessage && (
