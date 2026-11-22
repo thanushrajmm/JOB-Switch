@@ -3174,6 +3174,49 @@ export default function App() {
     setDomains(updated);
   };
 
+  const handleDeleteDomain = (domainId, domainTitle) => {
+    const remaining = domains.filter(d => d.id !== domainId);
+    setDomains(remaining);
+    if (activeDomainId === domainId) {
+      const fallbackDom = remaining[0] || null;
+      setActiveDomainId(fallbackDom?.id || null);
+      setActiveTopicId(fallbackDom?.topics?.[0]?.id || null);
+    }
+    showToast(`Deleted domain "${domainTitle}"`);
+  };
+
+  const handleDeleteTopic = (topicId, topicTitle) => {
+    if (!activeDomain) return;
+    const updatedTopics = activeDomain.topics.filter(t => t.id !== topicId);
+    const updated = domains.map(d =>
+      d.id === activeDomain.id ? { ...d, topics: updatedTopics } : d
+    );
+    setDomains(updated);
+    if (activeTopicId === topicId) {
+      setActiveTopicId(updatedTopics[0]?.id || null);
+    }
+    showToast(`Deleted topic "${topicTitle}"`);
+  };
+
+  const handleDeleteSection = (sectionId, sectionTitle) => {
+    if (!activeDomain || !activeTopic) return;
+    const updated = domains.map(d => {
+      if (d.id === activeDomain.id) {
+        return {
+          ...d,
+          topics: d.topics.map(t =>
+            t.id === activeTopic.id
+              ? { ...t, sections: t.sections.filter(s => s.id !== sectionId) }
+              : t
+          )
+        };
+      }
+      return d;
+    });
+    setDomains(updated);
+    showToast(`Deleted section "${sectionTitle}"`);
+  };
+
   const handleToggleSubtopic = (subtopicId, isCompleted, targetDate = workingDate) => {
     const nowTimestamp = isCompleted
       ? new Date().toLocaleString('en-US', {
@@ -3875,9 +3918,21 @@ export default function App() {
                             : 'bg-white dark:bg-[#121824] border-stone-200 dark:border-stone-800 hover:border-stone-300'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <h4 className="text-xs font-bold leading-tight line-clamp-1">{dom.title}</h4>
-                          <span className="text-[11px] font-mono text-stone-400">{pct}%</span>
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <span className="text-[11px] font-mono text-stone-400">{pct}%</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteDomain(dom.id, dom.title);
+                              }}
+                              className="p-1 text-stone-400 hover:text-rose-500 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+                              title="Delete Domain"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <div className="mt-2 w-full bg-stone-100 dark:bg-stone-900 rounded-full h-1.5 overflow-hidden">
                           <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
@@ -3890,22 +3945,40 @@ export default function App() {
 
               <div className="lg:col-span-8 space-y-4">
                 <div className="bg-white dark:bg-[#121824] p-3 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex items-center gap-2 overflow-x-auto">
-                  {activeDomain?.topics.map(top => {
-                    const isSelected = top.id === activeTopic?.id;
-                    return (
-                      <button
-                        key={top.id}
-                        onClick={() => setActiveTopicId(top.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                          isSelected
-                            ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-sm'
-                            : 'bg-stone-50 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700'
-                        }`}
-                      >
-                        {top.title}
-                      </button>
-                    );
-                  })}
+                  {activeDomain?.topics.length === 0 ? (
+                    <span className="text-xs text-stone-400 px-2 py-1">No topics in this domain yet. Click "+ Add Topic" above.</span>
+                  ) : (
+                    activeDomain?.topics.map(top => {
+                      const isSelected = top.id === activeTopic?.id;
+                      return (
+                        <div
+                          key={top.id}
+                          onClick={() => setActiveTopicId(top.id)}
+                          className={`flex items-center space-x-1.5 pl-3.5 pr-2 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-sm'
+                              : 'bg-stone-50 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700'
+                          }`}
+                        >
+                          <span>{top.title}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTopic(top.id, top.title);
+                            }}
+                            className={`p-0.5 rounded-md transition ${
+                              isSelected
+                                ? 'text-stone-400 hover:text-rose-400 dark:text-stone-500 dark:hover:text-rose-600'
+                                : 'text-stone-400 hover:text-rose-500'
+                            }`}
+                            title="Delete Topic"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -3921,13 +3994,20 @@ export default function App() {
                             <span className="text-[11px] font-mono text-stone-400">({completedCount}/{totalCount})</span>
                           </div>
 
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-3">
                             <button
                               onClick={() => setModalAddSubtopicSectionId(section.id)}
                               className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium flex items-center gap-1"
                             >
                               <Plus className="w-3 h-3" />
                               <span>Add Subtopic</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSection(section.id, section.title)}
+                              className="p-1 text-stone-400 hover:text-rose-500 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+                              title="Delete Section"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
