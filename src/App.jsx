@@ -189,22 +189,6 @@ const DEFAULT_FLASHCARDS = [
     answer: 'N+1 occurs when fetching an entity with lazy relationships triggers 1 initial query for the parent followed by N individual queries for each child.\nSolutions:\n1. JOIN FETCH in JPQL: @Query("SELECT p FROM Parent p JOIN FETCH p.children")\n2. @EntityGraph: Declaratively specifies which associations should be fetched eagerly in a single join query.\n3. @BatchSize(size = 25): Batches child queries into SQL IN clauses (WHERE parent_id IN (?, ?, ...)).',
     difficulty: 'Hard',
     status: 'mastered'
-  },
-  {
-    id: 'fc-4',
-    domain: 'Search & Elasticsearch',
-    question: 'How does an Inverted Index work and why is Elasticsearch fast for aggregations?',
-    answer: 'An inverted index maps terms/tokens to the document IDs containing them (Term -> [Doc1, Doc3]). For aggregations, Elasticsearch uses Doc Values (columnar disk-based data structures on non-text/keyword fields) and Global Ordinals. Instead of reading row by row, it sequentially scans columnar Doc Values in compressed memory, enabling fast aggregation across millions of records (ideal for KPI dashboards).',
-    difficulty: 'Medium',
-    status: 'mastered'
-  },
-  {
-    id: 'fc-5',
-    domain: 'High-Level System Design (HLD)',
-    question: 'How do you prevent a Cache Stampede (Thundering Herd) on Redis?',
-    answer: '1. Distributed Mutex Lock (Redlock): Only the first worker acquiring the key query fetches from DB while others wait or return stale cache.\n2. Probabilistic Early Expiration (XFetch algorithm): Recomputes the cache item before it actually expires based on query frequency.\n3. Background Asynchronous Refresh: A worker periodically updates the cache before TTL expiration.',
-    difficulty: 'Hard',
-    status: 'review'
   }
 ];
 
@@ -223,17 +207,10 @@ public class Main {
     }
 }`;
 
-const DEFAULT_SQL_QUERY = `-- Practice SQL Queries (Pre-loaded tables: employees, departments, orders)
-SELECT 
-    d.dept_name,
-    COUNT(e.emp_id) AS total_employees,
-    ROUND(AVG(e.salary), 2) AS avg_salary,
-    MAX(e.salary) AS top_salary
+const DEFAULT_SQL_QUERY = `SELECT e.emp_id, e.full_name, e.role, d.dept_name, e.salary
 FROM employees e
 JOIN departments d ON e.dept_id = d.dept_id
-GROUP BY d.dept_name
-HAVING COUNT(e.emp_id) >= 1
-ORDER BY avg_salary DESC;`;
+ORDER BY e.salary DESC;`;
 
 const SQL_SEED_SCRIPT = `
 CREATE TABLE departments (
@@ -244,53 +221,166 @@ CREATE TABLE departments (
 
 CREATE TABLE employees (
   emp_id INTEGER PRIMARY KEY,
-  emp_name TEXT NOT NULL,
+  full_name TEXT NOT NULL,
   role TEXT NOT NULL,
   dept_id INTEGER,
   salary INTEGER,
-  hire_date TEXT,
-  FOREIGN KEY (dept_id) REFERENCES departments(dept_id)
+  hire_date TEXT
 );
 
 CREATE TABLE orders (
   order_id INTEGER PRIMARY KEY,
   emp_id INTEGER,
-  customer_name TEXT,
   amount REAL,
   status TEXT,
   order_date TEXT
 );
 
 INSERT INTO departments VALUES
-  (10, 'Platform Engineering', 'Bengaluru'),
-  (20, 'Search & Analytics', 'Hyderabad'),
-  (30, 'Applied AI & Data', 'Bengaluru'),
-  (40, 'Cloud Infrastructure', 'Pune');
+  (1, 'Backend & Cloud', 'Bengaluru'),
+  (2, 'Applied AI & Search', 'Hyderabad'),
+  (3, 'Platform Reliability', 'Chennai');
 
 INSERT INTO employees VALUES
-  (101, 'Aarav Sharma', 'Senior Backend Engineer', 10, 2400000, '2023-03-15'),
-  (102, 'Priya Nair', 'Software Engineer II', 20, 1950000, '2024-01-10'),
-  (103, 'Rohan Verma', 'Distributed Systems SDE', 10, 2200000, '2023-08-01'),
-  (104, 'Sneha Iyer', 'ML Infrastructure Engineer', 30, 2600000, '2022-11-20'),
-  (105, 'Karthik Menon', 'Site Reliability Engineer', 40, 1850000, '2024-06-05'),
-  (106, 'Ananya Rao', 'Full Stack Engineer', 20, 1650000, '2025-02-01');
+  (101, 'Thanushraj M M', 'Software Engineer', 1, 1850000, '2025-02-01'),
+  (102, 'Ananya Sharma', 'Senior SDE', 2, 2600000, '2023-06-15'),
+  (103, 'Karthik Nair', 'Staff Engineer', 1, 3400000, '2021-11-10'),
+  (104, 'Priya Menon', 'ML Engineer', 2, 2250000, '2024-01-20'),
+  (105, 'Rohan Verma', 'SRE II', 3, 2100000, '2023-09-05');
 
 INSERT INTO orders VALUES
-  (5001, 101, 'Acme Retail', 14500.00, 'COMPLETED', '2026-10-02'),
-  (5002, 102, 'FinEdge Corp', 28900.50, 'COMPLETED', '2026-10-05'),
-  (5003, 101, 'Nova Logistics', 9200.00, 'PENDING', '2026-10-09'),
-  (5004, 104, 'MedCore Labs', 41000.00, 'COMPLETED', '2026-10-12'),
-  (5005, 106, 'UrbanCart', 12750.00, 'COMPLETED', '2026-10-15'),
-  (5006, 103, 'CloudNine Tech', 19800.00, 'CANCELLED', '2026-10-18');
+  (5001, 101, 14500.50, 'COMPLETED', '2026-10-02'),
+  (5002, 102, 28900.00, 'COMPLETED', '2026-10-05'),
+  (5003, 101, 9200.00, 'PENDING', '2026-10-12'),
+  (5004, 103, 41200.75, 'COMPLETED', '2026-10-18'),
+  (5005, 104, 17800.00, 'COMPLETED', '2026-11-01');
 `;
 
 const DEFAULT_SNIPPET_FOLDERS = [
   'General',
   'Arrays & Hashing',
+  'Linked Lists',
   'Trees & Graphs',
   'Dynamic Programming',
-  'Java Core & Streams'
+  'SQL Queries'
 ];
+
+const DEFAULT_LATEX_RESUME = `\\documentclass[10pt, a4paper]{article}
+\\usepackage[top=0.35in, bottom=0.35in, left=0.48in, right=0.48in]{geometry}
+\\usepackage[T1]{fontenc}
+\\usepackage[utf8]{inputenc}
+\\usepackage{lmodern}
+\\usepackage{titlesec}
+\\usepackage{enumitem}
+\\usepackage{hyperref}
+\\usepackage{xcolor}
+\\usepackage{tabularx}
+\\input{glyphtounicode}
+
+\\hypersetup{colorlinks=true, urlcolor=black, linkcolor=black}
+
+\\pagestyle{empty}
+\\setlength{\\parindent}{0pt}
+\\setlength{\\parskip}{0pt}
+
+% Ensure 100% ATS character & ligature extraction accuracy
+\\pdfgentounicode=1
+
+% Clean, balanced section headers
+\\titleformat{\\section}
+  {\\normalfont\\large\\bfseries\\centering}
+  {}{0em}{}
+  [\\vspace{-4pt}\\rule{\\linewidth}{0.4pt}]
+\\titlespacing{\\section}{0pt}{6pt}{3.5pt}
+
+\\begin{document}
+
+% ---- HEADER ----
+\\begin{center}
+    {\\LARGE\\textbf{THANUSHRAJ M M}}\\\\[2pt]
+    {\\normalsize\\textbf{Software Engineer}}\\\\[2pt]
+    {\\small
+      +91 9123573517 \\,$\\bullet$\\, 
+      \\href{mailto:thanushrajmm@gmail.com}{thanushrajmm@gmail.com} \\,$\\bullet$\\, 
+      \\href{https://linkedin.com/in/thanushrajmm/}{LinkedIn} \\,$\\bullet$\\, 
+      \\href{https://github.com/thanushrajmm}{GitHub} \\,$\\bullet$\\, 
+      Bengaluru, India
+    }
+\\end{center}
+
+% ---- SUMMARY ----
+\\section{Summary}
+\\vspace{0.5pt}
+Full-Stack Software Engineer with \\textbf{nearly 2 years (1.8+ years)} of production experience building high-throughput backend APIs with \\textbf{Spring Boot}, distributed search \\& aggregation pipelines in \\textbf{Elasticsearch}, and interactive analytics UIs using \\textbf{Vue.js, React.js, and D3.js}. Proven track record of cutting UI rendering latency by \\textbf{90\\%} via \\textbf{Web Workers}, architecting asynchronous messaging pipelines, and accelerating sprint delivery velocity by \\textbf{40\\%} through AI-assisted engineering workflows.
+
+\\vspace{1.5pt}
+
+% ---- EXPERIENCE ----
+\\section{Experience}
+\\vspace{1pt}
+
+\\textbf{JBPB Offshore Pvt Ltd} \\textnormal{(formerly HikeOn Technologies)} \\hfill Bengaluru, India \\\\
+\\textbf{Software Engineer} \\hfill 02/2025 -- Present
+
+\\vspace{2.5pt}
+\\textit{\\textbf{KPI Dashboard \\& Enterprise Analytics System}}
+\\begin{itemize}[leftmargin=1.2em, itemsep=1pt, parsep=0pt, topsep=1pt]
+  \\item[$\\bullet$] Architected and delivered an end-to-end self-service ERP analytics platform from scratch to production using \\textbf{Spring Boot}, \\textbf{Elasticsearch}, and \\textbf{Vue.js}, reducing manual executive reporting effort by \\textbf{85\\%} across distributor and sales channels.
+  \\item[$\\bullet$] Built reusable Vue.js dashboard widgets powered by custom \\textbf{D3.js} visualizations (bar, line, donut, area, geo-maps), achieving \\textbf{90\\% faster} interactive drill-down responsiveness across multi-dimensional datasets.
+  \\item[$\\bullet$] Engineered multi-level \\textbf{Elasticsearch aggregation pipelines} and Spring service integrations over \\textbf{3M+ order and revenue records}, cutting complex dashboard query latency by \\textbf{65\\%}.
+\\end{itemize}
+
+\\vspace{2.5pt}
+\\textit{\\textbf{Orchestrated Sales Reporting Pipeline}}
+\\begin{itemize}[leftmargin=1.2em, itemsep=1pt, parsep=0pt, topsep=1pt]
+  \\item[$\\bullet$] Built a multi-module \\textbf{Spring Boot} data aggregation engine to concurrently query, join, and merge datasets across \\textbf{5+ independent Elasticsearch indices}, improving report compilation throughput by \\textbf{3x}.
+  \\item[$\\bullet$] Architected an asynchronous export pipeline utilizing a decoupled \\textbf{Producer-Consumer pattern} over a messaging queue, eliminating API timeouts and achieving \\textbf{99.9\\% delivery reliability} for bulk sales workloads.
+  \\item[$\\bullet$] Implemented a \\textbf{JMS Listener} configured with a fixed concurrency of 5 to asynchronously consume message payloads and securely auto-dispatch emails via \\textbf{Google Cloud Auth}.
+\\end{itemize}
+
+\\vspace{2.5pt}
+\\textit{\\textbf{Stock Predictive Inventory (SPI) Analytics}}
+\\begin{itemize}[leftmargin=1.2em, itemsep=1pt, parsep=0pt, topsep=1pt]
+  \\item[$\\bullet$] Engineered custom Spring background analytical tasks to profile \\textbf{24 months} of historical sales velocity, stock levels, and supplier shipment ETAs across \\textbf{18,000+ SKUs}, reducing stockout incidents by \\textbf{60\\%}.
+  \\item[$\\bullet$] Developed a high-performance \\textbf{React.js} inventory forecasting interface, leveraging \\textbf{Web Workers} to offload heavy client-side calculations from the main UI thread and cut main-thread blocking time by \\textbf{90\\%}.
+\\end{itemize}
+
+\\vspace{2.5pt}
+\\textit{\\textbf{AI-Assisted Engineering \\& Automated Testing}}
+\\begin{itemize}[leftmargin=1.2em, itemsep=1pt, parsep=0pt, topsep=1pt]
+  \\item[$\\bullet$] Integrated \\textbf{Claude Code} and \\textbf{GitHub Copilot} into terminal and IDE workflows, \\textbf{accelerating feature delivery velocity by 40\\%} across backend and frontend release cycles.
+  \\item[$\\bullet$] Authored comprehensive \\textbf{JUnit} unit and integration test suites, achieving \\textbf{98\\% code coverage} across critical Spring Boot controllers and core service modules and reducing post-release regressions by \\textbf{75\\%}.
+\\end{itemize}
+
+\\vspace{1.5pt}
+
+% ---- TECHNICAL SKILLS ----
+\\section{Technical Skills}
+\\vspace{1pt}
+\\textbf{Languages \\& Frameworks:} Java, Spring Boot, Python, TypeScript, JavaScript (ES6+), Vue.js, React.js, SQL, HTML/CSS \\\\
+\\textbf{Databases \\& Search:} Elasticsearch (Query DSL, Aggregations), MySQL (Stored Procedures, Triggers, Complex Joins, Row-Level Locks) \\\\
+\\textbf{Architecture \\& Tools:} RESTful APIs, JMS (Java Message Service), Producer-Consumer Queues, JDBC, DTO Architecture, Web Workers, Playwright, JUnit, D3.js, Git \\\\
+\\textbf{AI \\& Automation:} Claude Code, GitHub Copilot, Google Apps Script, Google Cloud Auth
+
+\\vspace{1.5pt}
+
+% ---- EDUCATION ----
+\\section{Education}
+\\vspace{1pt}
+\\textbf{Anna University — College of Engineering, Guindy (CEG)} \\hfill 09/2022 -- 04/2025 \\\\
+Bachelor of Engineering (B.E.), Computer Science and Engineering \\hfill \\textit{Chennai, India}
+
+\\vspace{1.5pt}
+
+% ---- CERTIFICATIONS ----
+\\section{Certifications}
+\\vspace{1pt}
+\\begin{itemize}[leftmargin=1.2em, itemsep=0.5pt, parsep=0pt, topsep=0pt]
+  \\item[$\\bullet$] Claude Code in Action --- Anthropic \\,$\\bullet$\\, Certificate of Completion: Claude 101 --- Anthropic
+  \\item[$\\bullet$] Machine Learning Algorithms --- Great Learning \\,$\\bullet$\\, The Complete Web Development Bootcamp --- Udemy
+\\end{itemize}
+
+\\end{document}`;
 
 const DEFAULT_RESUME_DATA = {
   header: {
@@ -402,8 +492,16 @@ export default function App() {
       const link = document.createElement('link');
       link.id = 'jobswitch-web-fonts';
       link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap';
       document.head.appendChild(link);
+    }
+    const lmodernLink = document.getElementById('jobswitch-lmodern-font');
+    if (!lmodernLink) {
+      const lm = document.createElement('link');
+      lm.id = 'jobswitch-lmodern-font';
+      lm.rel = 'stylesheet';
+      lm.href = 'https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css';
+      document.head.appendChild(lm);
     }
   }, []);
 
@@ -418,6 +516,31 @@ export default function App() {
     const saved = localStorage.getItem('omniswitch_resume_data_v1');
     return saved ? JSON.parse(saved) : DEFAULT_RESUME_DATA;
   });
+
+  // LaTeX Resume Editor & Version Vault State
+  const [latexResumeCode, setLatexResumeCode] = useState(() => {
+    const saved = localStorage.getItem('omniswitch_latex_resume_code_v1');
+    return saved || DEFAULT_LATEX_RESUME;
+  });
+  const [resumeVersions, setResumeVersions] = useState(() => {
+    const saved = localStorage.getItem('omniswitch_resume_versions_v1');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 'ver-default-1',
+        name: 'SDE Full-Stack & Backend (10pt A4)',
+        targetRole: 'Software Engineer • Spring Boot & Elasticsearch',
+        updatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        latexCode: DEFAULT_LATEX_RESUME
+      }
+    ];
+  });
+  const [activeResumeVersionId, setActiveResumeVersionId] = useState(() => {
+    return localStorage.getItem('omniswitch_active_resume_ver_v1') || 'ver-default-1';
+  });
+  const [newResumeVersionName, setNewResumeVersionName] = useState('');
+  const [newResumeVersionRole, setNewResumeVersionRole] = useState('');
+  const [showSaveResumeVersionModal, setShowSaveResumeVersionModal] = useState(false);
 
   const [activeResumeSectionId, setActiveResumeSectionId] = useState('sec-experience');
   const [activeDomainId, setActiveDomainId] = useState(() => domains[0]?.id || null);
@@ -824,35 +947,521 @@ export default function App() {
   }, [resumeData]);
 
   useEffect(() => {
+    localStorage.setItem('omniswitch_latex_resume_code_v1', latexResumeCode);
+  }, [latexResumeCode]);
+
+  useEffect(() => {
+    localStorage.setItem('omniswitch_resume_versions_v1', JSON.stringify(resumeVersions));
+  }, [resumeVersions]);
+
+  useEffect(() => {
+    localStorage.setItem('omniswitch_active_resume_ver_v1', activeResumeVersionId);
+  }, [activeResumeVersionId]);
+
+  useEffect(() => {
     localStorage.setItem('omniswitch_react_daylogs_v1', JSON.stringify(dayLogs));
   }, [dayLogs]);
+  // Robust Standalone Window PDF Printing that never gets blocked by containers
+  const handlePrintResume = () => {
+    const printContent = document.getElementById('resume-printable-document');
+    if (!printContent) {
+      window.print();
+      return;
+    }
 
-  useEffect(() => {
-    localStorage.setItem('omniswitch_react_discovered_jobs_v1', JSON.stringify(discoveredJobs));
-  }, [discoveredJobs]);
+    try {
+      const printWindow = window.open('', '_blank', 'width=900,height=1100');
+      if (printWindow) {
+        const fontFamilyCss = "'Computer Modern Serif', 'Latin Modern Roman', 'CMU Serif', 'Tinos', 'Times New Roman', serif";
+        const marginTop = parsedLatexResume?.margins?.top || '0.35in';
+        const marginBottom = parsedLatexResume?.margins?.bottom || '0.35in';
+        const marginLeft = parsedLatexResume?.margins?.left || '0.48in';
+        const marginRight = parsedLatexResume?.margins?.right || '0.48in';
+        const basePt = parsedLatexResume?.basePt || 10;
 
-  useEffect(() => {
-    localStorage.setItem('omniswitch_react_apps_v1', JSON.stringify(applications));
-  }, [applications]);
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${parsedLatexResume?.candidateName || 'Resume'}</title>
+              <meta charset="utf-8" />
+              <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css">
+              <link rel="preconnect" href="https://fonts.googleapis.com">
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+              <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+              <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+              <style>
+                @page { size: A4 portrait; margin: 0 !important; }
+                * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                html, body, #resume-printable-document, #resume-printable-document * { font-family: ${fontFamilyCss} !important; }
+                html, body { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; color: black !important; font-size: ${basePt}pt; line-height: 1.24; }
+                #resume-printable-document {
+                  padding: ${marginTop} ${marginRight} ${marginBottom} ${marginLeft} !important;
+                  margin: 0 auto !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  min-height: auto !important;
+                }
+                a { color: black; text-decoration: none; }
+                .print-hidden { display: none !important; }
+              </style>
+            </head>
+            <body>
+              ${printContent.outerHTML}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          try {
+            printWindow.print();
+          } catch (e) {}
+        }, 400);
+      } else {
+        window.print();
+      }
+    } catch (err) {
+      window.print();
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('omniswitch_react_portals_v1', JSON.stringify(hiringPortals));
-  }, [hiringPortals]);
+  // ================= REAL-TIME LATEX RESUME PARSER & RENDERER =================
+  const parsedLatexResume = useMemo(() => {
+    const src = latexResumeCode || '';
+    const docClassMatch = src.match(/\\documentclass\[([^\]]*)\]/);
+    let basePt = 10;
+    if (docClassMatch) {
+      const ptMatch = docClassMatch[1].match(/(\d+)\s*pt/);
+      if (ptMatch) basePt = Number(ptMatch[1]);
+    }
 
-  // Step-by-Step Execution Tracer for Java Playground
+    const geomMatch = src.match(/\\usepackage\[([^\]]*)\]\{geometry\}/);
+    const margins = { top: '0.35in', bottom: '0.35in', left: '0.48in', right: '0.48in' };
+    if (geomMatch) {
+      geomMatch[1].split(',').forEach(part => {
+        const [k, v] = part.split('=').map(s => s.trim());
+        if (k && v && Object.prototype.hasOwnProperty.call(margins, k)) {
+          margins[k] = v;
+        }
+      });
+    }
+
+    const bodyMatch = src.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
+    const body = bodyMatch ? bodyMatch[1] : src;
+    const cleanBody = body
+      .split('\n')
+      .map(line => {
+        let out = '';
+        for (let i = 0; i < line.length; i++) {
+          if (line[i] === '%' && (i === 0 || line[i - 1] !== '\\')) break;
+          out += line[i];
+        }
+        return out;
+      })
+      .join('\n');
+
+    const extractBracedArg = (text, startIdx) => {
+      if (text[startIdx] !== '{') return null;
+      let depth = 0;
+      for (let i = startIdx; i < text.length; i++) {
+        if (text[i] === '{' && text[i - 1] !== '\\') depth++;
+        else if (text[i] === '}' && text[i - 1] !== '\\') {
+          depth--;
+          if (depth === 0) {
+            return { content: text.slice(startIdx + 1, i), endIdx: i };
+          }
+        }
+      }
+      return null;
+    };
+
+    const renderInlineTokens = (rawText, keyPrefix = 'tok') => {
+      if (!rawText) return null;
+      let text = rawText
+        .replace(/\\,/g, ' ')
+        .replace(/\\;/g, ' ')
+        .replace(/\\:/g, ' ')
+        .replace(/\\!/g, '')
+        .replace(/~/g, ' ')
+        .replace(/\\&/g, '&')
+        .replace(/\\%/g, '%')
+        .replace(/\\\$/g, '$')
+        .replace(/\\#/g, '#')
+        .replace(/\\_/g, '_')
+        .replace(/---/g, '—')
+        .replace(/--/g, '–')
+        .replace(/\$\\bullet\$/g, '•')
+        .replace(/\\bullet/g, '•')
+        .replace(/\\textbullet/g, '•');
+
+      const nodes = [];
+      let idx = 0;
+      let tokenCounter = 0;
+
+      while (idx < text.length) {
+        const nextSlash = text.indexOf('\\', idx);
+        if (nextSlash === -1) {
+          nodes.push(text.slice(idx));
+          break;
+        }
+        if (nextSlash > idx) {
+          nodes.push(text.slice(idx, nextSlash));
+        }
+
+        const rest = text.slice(nextSlash);
+
+        // \href{url}{label}
+        const hrefMatch = rest.match(/^\\href\s*\{/);
+        if (hrefMatch) {
+          const firstArg = extractBracedArg(text, nextSlash + hrefMatch[0].length - 1);
+          if (firstArg) {
+            let secondStart = firstArg.endIdx + 1;
+            while (secondStart < text.length && /\s/.test(text[secondStart])) secondStart++;
+            const secondArg = extractBracedArg(text, secondStart);
+            if (secondArg) {
+              const url = firstArg.content.trim();
+              nodes.push(
+                <a
+                  key={`${keyPrefix}-href-${tokenCounter++}`}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black no-underline hover:underline"
+                >
+                  {renderInlineTokens(secondArg.content, `${keyPrefix}-a-${tokenCounter}`)}
+                </a>
+              );
+              idx = secondArg.endIdx + 1;
+              continue;
+            }
+          }
+        }
+
+        // Formatting macros: \textbf, \textit, \emph, \underline, \textnormal, \textsc, \LARGE, \large, \normalsize, \small, \huge
+        const cmdMatch = rest.match(/^\\(textbf|textit|emph|underline|textnormal|textsc|LARGE|large|huge|Huge|normalsize|small|footnotesize)\s*\{/);
+        if (cmdMatch) {
+          const cmd = cmdMatch[1];
+          const arg = extractBracedArg(text, nextSlash + cmdMatch[0].length - 1);
+          if (arg) {
+            const inner = renderInlineTokens(arg.content, `${keyPrefix}-${cmd}-${tokenCounter++}`);
+            if (cmd === 'textbf') {
+              nodes.push(<strong key={`${keyPrefix}-b-${tokenCounter}`} className="font-bold text-black">{inner}</strong>);
+            } else if (cmd === 'textit' || cmd === 'emph') {
+              nodes.push(<em key={`${keyPrefix}-i-${tokenCounter}`} className="italic">{inner}</em>);
+            } else if (cmd === 'underline') {
+              nodes.push(<span key={`${keyPrefix}-u-${tokenCounter}`} className="underline">{inner}</span>);
+            } else if (cmd === 'textsc') {
+              nodes.push(<span key={`${keyPrefix}-sc-${tokenCounter}`} className="uppercase tracking-wide">{inner}</span>);
+            } else if (cmd === 'LARGE') {
+              nodes.push(<span key={`${keyPrefix}-lg-${tokenCounter}`} style={{ fontSize: '1.728em', lineHeight: 1.15 }}>{inner}</span>);
+            } else if (cmd === 'huge' || cmd === 'Huge') {
+              nodes.push(<span key={`${keyPrefix}-hg-${tokenCounter}`} style={{ fontSize: '2.074em', lineHeight: 1.15 }}>{inner}</span>);
+            } else if (cmd === 'large') {
+              nodes.push(<span key={`${keyPrefix}-l-${tokenCounter}`} style={{ fontSize: '1.2em', lineHeight: 1.2 }}>{inner}</span>);
+            } else if (cmd === 'small') {
+              nodes.push(<span key={`${keyPrefix}-sm-${tokenCounter}`} style={{ fontSize: '0.9em', lineHeight: 1.2 }}>{inner}</span>);
+            } else if (cmd === 'footnotesize') {
+              nodes.push(<span key={`${keyPrefix}-fn-${tokenCounter}`} style={{ fontSize: '0.8em', lineHeight: 1.2 }}>{inner}</span>);
+            } else {
+              nodes.push(<span key={`${keyPrefix}-n-${tokenCounter}`} className="font-normal" style={{ fontSize: '1em' }}>{inner}</span>);
+            }
+            idx = arg.endIdx + 1;
+            continue;
+          }
+        }
+
+        // Handle scoped group blocks like {\LARGE\textbf{THANUSHRAJ M M}} or {\small ...}
+        if (text[nextSlash] === '\\') {
+          // Check if current slash is a standalone size switch inside a brace group
+          const sizeSwitchMatch = rest.match(/^\\(LARGE|Large|large|normalsize|small|footnotesize|huge|Huge)\b\s*/);
+          if (sizeSwitchMatch) {
+            idx = nextSlash + sizeSwitchMatch[0].length;
+            continue;
+          }
+        }
+
+        // Ignore spacing commands like \vspace{...}, \hspace{...}
+        const spaceMatch = rest.match(/^\\(vspace|hspace)\*?\s*\{/);
+        if (spaceMatch) {
+          const arg = extractBracedArg(text, nextSlash + spaceMatch[0].length - 1);
+          if (arg) {
+            idx = arg.endIdx + 1;
+            continue;
+          }
+        }
+
+        // Line break \\
+        if (rest.startsWith('\\\\')) {
+          const optBracket = rest.slice(2).match(/^\s*\[[^\]]*\]/);
+          nodes.push(<br key={`${keyPrefix}-br-${tokenCounter++}`} />);
+          idx = nextSlash + 2 + (optBracket ? optBracket[0].length : 0);
+          continue;
+        }
+
+        // Skip unrecognized standalone macro names gracefully
+        const unknownMacro = rest.match(/^\\[A-Za-z]+\*?/);
+        if (unknownMacro) {
+          idx = nextSlash + unknownMacro[0].length;
+          continue;
+        }
+
+        nodes.push(text[nextSlash]);
+        idx = nextSlash + 1;
+      }
+
+      return nodes;
+    };
+
+    const stripOuterScopedBraces = (lineStr) => {
+      let s = lineStr.trim();
+      while (s.startsWith('{') && s.endsWith('}')) {
+        const extracted = extractBracedArg(s, 0);
+        if (extracted && extracted.endIdx === s.length - 1) {
+          s = extracted.content.trim();
+        } else {
+          break;
+        }
+      }
+      return s;
+    };
+
+    // Parse top-level blocks: center block, sections, itemize lists, and paragraphs/lines
+    const blocks = [];
+    let cursor = 0;
+
+    // Extract candidate name for PDF title
+    const nameMatch = cleanBody.match(/\\textbf\{([A-Z\s.]{3,})\}/);
+    const candidateName = nameMatch ? nameMatch[1].trim() : 'Resume';
+
+    const parseSectionBody = (secContent, secIdx) => {
+      const elements = [];
+      let pCursor = 0;
+      let elCounter = 0;
+
+      while (pCursor < secContent.length) {
+        const itemizeStart = secContent.indexOf('\\begin{itemize}', pCursor);
+        const textSegment = itemizeStart === -1 ? secContent.slice(pCursor) : secContent.slice(pCursor, itemizeStart);
+
+        // Process lines in textSegment (supporting \hfill for left/right split rows)
+        const rawSegLines = textSegment
+          .replace(/\\\\(?:\[[^\]]*\])?/g, '\n')
+          .split('\n')
+          .map(l => stripOuterScopedBraces(l))
+          .filter(l => l && !/^\\vspace\*?\{[^}]*\}$/.test(l));
+
+        rawSegLines.forEach(line => {
+          if (line.includes('\\hfill')) {
+            const [leftPart, rightPart] = line.split('\\hfill');
+            elements.push(
+              <div key={`sec-${secIdx}-row-${elCounter++}`} className="flex items-baseline justify-between gap-3" style={{ lineHeight: 1.24 }}>
+                <div>{renderInlineTokens(stripOuterScopedBraces(leftPart), `sec-${secIdx}-l-${elCounter}`)}</div>
+                <div className="shrink-0 text-right">{renderInlineTokens(stripOuterScopedBraces(rightPart), `sec-${secIdx}-r-${elCounter}`)}</div>
+              </div>
+            );
+          } else {
+            elements.push(
+              <div key={`sec-${secIdx}-p-${elCounter++}`} style={{ lineHeight: 1.24, marginTop: '2px' }}>
+                {renderInlineTokens(line, `sec-${secIdx}-p-${elCounter}`)}
+              </div>
+            );
+          }
+        });
+
+        if (itemizeStart === -1) break;
+
+        const itemizeEnd = secContent.indexOf('\\end{itemize}', itemizeStart);
+        if (itemizeEnd === -1) break;
+
+        const innerList = secContent.slice(itemizeStart + '\\begin{itemize}'.length, itemizeEnd)
+          .replace(/^\[[^\]]*\]/, '');
+
+        // Split on \item
+        const rawItems = innerList.split(/\\item(?:\[[^\]]*\])?\s*/).map(it => it.trim()).filter(Boolean);
+        elements.push(
+          <ul
+            key={`sec-${secIdx}-ul-${elCounter++}`}
+            className="list-disc"
+            style={{ paddingLeft: '1.25em', marginTop: '1.5px', marginBottom: '2px' }}
+          >
+            {rawItems.map((itemText, iIdx) => (
+              <li
+                key={`sec-${secIdx}-li-${elCounter}-${iIdx}`}
+                style={{ lineHeight: 1.22, marginBottom: '1px', paddingLeft: '1px' }}
+              >
+                {renderInlineTokens(itemText, `sec-${secIdx}-li-${elCounter}-${iIdx}`)}
+              </li>
+            ))}
+          </ul>
+        );
+
+        pCursor = itemizeEnd + '\\end{itemize}'.length;
+      }
+
+      return elements;
+    };
+
+    // 1. Check for \begin{center} ... \end{center} header
+    const centerMatch = cleanBody.match(/\\begin\{center\}([\s\S]*?)\\end\{center\}/);
+    if (centerMatch) {
+      // Split header ONLY on explicit LaTeX line breaks (\\) so multi-line {\small ... } blocks stay on one single line
+      const centerLines = centerMatch[1]
+        .split(/\\\\(?:\[[^\]]*\])?/)
+        .map(chunk => stripOuterScopedBraces(chunk.replace(/\s+/g, ' ')))
+        .filter(Boolean);
+      blocks.push(
+        <div key="latex-header" className="text-center" style={{ lineHeight: 1.2, marginBottom: '2px' }}>
+          {centerLines.map((cl, cIdx) => {
+            const isLargeGroup = /^\\LARGE\b/.test(cl);
+            const isSmallGroup = /^\\small\b/.test(cl);
+            return (
+              <div
+                key={`hdr-${cIdx}`}
+                style={{
+                  fontSize: isLargeGroup ? '1.728em' : isSmallGroup ? '0.9em' : '1em',
+                  marginBottom: cIdx < centerLines.length - 1 ? '2px' : '0px'
+                }}
+              >
+                {renderInlineTokens(cl, `hdr-${cIdx}`)}
+              </div>
+            );
+          })}
+        </div>
+      );
+      cursor = cleanBody.indexOf('\\end{center}') + '\\end{center}'.length;
+    }
+
+    // 2. Parse each \section{...}
+    const remaining = cleanBody.slice(cursor);
+    const sectionRegex = /\\section\*?\{([^}]+)\}/g;
+    let match;
+    const sectionMatches = [];
+    while ((match = sectionRegex.exec(remaining)) !== null) {
+      sectionMatches.push({
+        title: match[1],
+        start: match.index,
+        contentStart: match.index + match[0].length
+      });
+    }
+
+    if (sectionMatches.length === 0 && remaining.trim()) {
+      blocks.push(
+        <div key="fallback-body" className="space-y-1">
+          {parseSectionBody(remaining, 0)}
+        </div>
+      );
+    } else {
+      sectionMatches.forEach((sec, idx) => {
+        const nextStart = idx + 1 < sectionMatches.length ? sectionMatches[idx + 1].start : remaining.length;
+        const secBody = remaining.slice(sec.contentStart, nextStart);
+        blocks.push(
+          <div key={`latex-sec-${idx}`} style={{ marginTop: '6px' }}>
+            <div
+              className="text-center"
+              style={{
+                borderBottom: '0.6pt solid #000000',
+                paddingBottom: '1px',
+                marginBottom: '3.5px'
+              }}
+            >
+              <h2 className="font-bold text-black" style={{ fontSize: '1.2em', lineHeight: 1.15 }}>
+                {renderInlineTokens(sec.title, `sec-title-${idx}`)}
+              </h2>
+            </div>
+            <div>
+              {parseSectionBody(secBody, idx)}
+            </div>
+          </div>
+        );
+      });
+    }
+
+    return { blocks, basePt, margins, candidateName };
+  }, [latexResumeCode]);
+
+  const handleSaveResumeVersion = () => {
+    const versionTitle = newResumeVersionName.trim() || `Resume Version #${resumeVersions.length + 1}`;
+    const roleTag = newResumeVersionRole.trim() || 'Tailored Software Engineer';
+    const nowLabel = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const newVer = {
+      id: 'ver-' + Date.now(),
+      name: versionTitle,
+      targetRole: roleTag,
+      updatedAt: nowLabel,
+      latexCode: latexResumeCode
+    };
+    setResumeVersions([newVer, ...resumeVersions]);
+    setActiveResumeVersionId(newVer.id);
+    setNewResumeVersionName('');
+    setNewResumeVersionRole('');
+    setShowSaveResumeVersionModal(false);
+    playChime();
+    showToast(`Saved resume version "${versionTitle}"`);
+  };
+
+  const handleUpdateCurrentResumeVersion = () => {
+    const nowLabel = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const exists = resumeVersions.some(v => v.id === activeResumeVersionId);
+    if (!exists) {
+      setShowSaveResumeVersionModal(true);
+      return;
+    }
+    setResumeVersions(
+      resumeVersions.map(v =>
+        v.id === activeResumeVersionId ? { ...v, latexCode: latexResumeCode, updatedAt: nowLabel } : v
+      )
+    );
+    playChime();
+    showToast('Updated active resume version!');
+  };
+
+  const handleLoadResumeVersion = (ver) => {
+    setActiveResumeVersionId(ver.id);
+    setLatexResumeCode(ver.latexCode);
+    showToast(`Loaded "${ver.name}"`);
+  };
+
+  const handleDeleteResumeVersion = (verId) => {
+    if (resumeVersions.length <= 1) {
+      showToast('Keep at least one resume version in your vault');
+      return;
+    }
+    const remaining = resumeVersions.filter(v => v.id !== verId);
+    setResumeVersions(remaining);
+    if (activeResumeVersionId === verId && remaining[0]) {
+      setActiveResumeVersionId(remaining[0].id);
+      setLatexResumeCode(remaining[0].latexCode);
+    }
+    showToast('Resume version deleted');
+  };
+
+  const handleDownloadTexFile = () => {
+    const activeVer = resumeVersions.find(v => v.id === activeResumeVersionId);
+    const filename = (activeVer?.name || 'Thanushraj_Resume').replace(/[^a-zA-Z0-9_-]/g, '_') + '.tex';
+    const blob = new Blob([latexResumeCode], { type: 'application/x-tex;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast(`Downloaded ${filename}`);
+  };
+
+  // ================= STEP-BY-STEP EXECUTION TRACER =================
   const executionTrace = useMemo(() => {
     const rawLines = javaCode.split('\n');
     const frames = [];
-    const callStack = [{ methodName: 'main', vars: [] }];
     const heapObjects = [];
     const consoleLines = [];
+    const callStack = [{ methodName: 'main', vars: [] }];
     let nextAddr = 0x60;
-
-    const allocAddr = () => {
-      const a = '0x' + nextAddr.toString(16);
-      nextAddr++;
-      return a;
-    };
+    const allocAddr = () => '0x' + (nextAddr++).toString(16);
 
     const currentFrame = () => callStack[callStack.length - 1];
 
@@ -1224,6 +1833,7 @@ export default function App() {
           return arrObj.items[idxVal].value;
         }
       }
+
       // Field access: this.vertices or obj.data or temp.next
       if (trimmed.includes('.')) {
         const parts = trimmed.split('.');
@@ -2004,64 +2614,6 @@ export default function App() {
     } catch (e) {}
   };
 
-  const handlePrintResume = () => {
-    const printContent = document.getElementById('resume-printable-document');
-    if (!printContent) {
-      window.print();
-      return;
-    }
-
-    try {
-      const printWindow = window.open('', '_blank', 'width=900,height=1100');
-      if (printWindow) {
-        const isCompact = resumeData.settings.spacing === 'compact';
-        const fontFamilyCss = getSelectedFontFamilyCss(resumeData.settings.fontFamily);
-        const fontSizeCss = resumeData.settings.fontSize === 'sm' ? '12px' :
-                            resumeData.settings.fontSize === 'lg' ? '13.5px' : '12.5px';
-
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>${resumeData.header.fullName || 'Resume'} - ATS Optimized</title>
-              <meta charset="utf-8" />
-              <link rel="preconnect" href="https://fonts.googleapis.com">
-              <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-              <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-              <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-              <style>
-                @page { size: A4 portrait; margin: ${isCompact ? '6mm 10mm' : '8mm 12mm'}; }
-                * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                html, body, #resume-printable-document, #resume-printable-document * { font-family: ${fontFamilyCss} !important; }
-                html, body { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; color: black !important; font-size: ${fontSizeCss}; line-height: ${isCompact ? '1.28' : '1.38'}; }
-                #resume-printable-document { padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; }
-                a { color: black; text-decoration: underline; text-underline-offset: 2px; }
-                .print-hidden { display: none !important; }
-                ul { margin-top: ${isCompact ? '1px' : '2px'} !important; margin-bottom: ${isCompact ? '1px' : '2px'} !important; padding-left: 16px !important; }
-                li { margin-bottom: ${isCompact ? '1px' : '2px'} !important; }
-                .section-header { margin-top: ${isCompact ? '4px' : '8px'} !important; margin-bottom: ${isCompact ? '2px' : '4px'} !important; }
-              </style>
-            </head>
-            <body>
-              ${printContent.outerHTML}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-          try {
-            printWindow.print();
-          } catch (e) {}
-        }, 400);
-      } else {
-        window.print();
-      }
-    } catch (err) {
-      window.print();
-    }
-  };
-
   const moveResumeSection = (index, direction) => {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= resumeData.sections.length) return;
@@ -2819,6 +3371,8 @@ export default function App() {
       hiringPortals,
       flashcards,
       resumeData,
+      latexResumeCode,
+      resumeVersions,
       savedSnippets,
       snippetFolders
     };
@@ -2845,6 +3399,8 @@ export default function App() {
         if (parsed.hiringPortals) setHiringPortals(parsed.hiringPortals);
         if (parsed.flashcards) setFlashcards(parsed.flashcards);
         if (parsed.resumeData) setResumeData(parsed.resumeData);
+        if (parsed.latexResumeCode) setLatexResumeCode(parsed.latexResumeCode);
+        if (parsed.resumeVersions) setResumeVersions(parsed.resumeVersions);
         if (parsed.savedSnippets) setSavedSnippets(parsed.savedSnippets);
         if (parsed.snippetFolders) setSnippetFolders(parsed.snippetFolders);
         playChime();
@@ -3657,230 +4213,239 @@ export default function App() {
           </div>
         )}
 
-        {/* 6. ATS RESUME MAKER & LIVE A4 PREVIEW */}
+        {/* 6. LATEX ATS RESUME STUDIO & VERSION VAULT */}
         {activeTab === 'resume' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">ATS Resume Builder &bull; 1-Page A4</h2>
-                <p className="text-xs text-stone-500 mt-0.5">Edit sections on the left and export a single-page text-selectable PDF on the right.</p>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <button
-                  onClick={handleAddResumeSection}
-                  className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 rounded-lg font-medium border border-stone-200 dark:border-stone-700"
-                >
-                  + Add Section
-                </button>
-                <button
-                  onClick={handlePrintResume}
-                  className="px-4 py-1.5 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 rounded-lg font-semibold flex items-center gap-1.5"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print / Save as PDF</span>
-                </button>
+            {/* Compact Top Action Bar */}
+            <div className="bg-white dark:bg-[#121824] p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">LaTeX ATS Resume Studio &amp; Version Vault</h2>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
+                      Live LaTeX &rarr; A4 Renderer
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Edit your LaTeX resume code on the left to preview the rendered A4 sheet on the right, and manage all saved versions in the vault below.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <button
+                    onClick={handleUpdateCurrentResumeVersion}
+                    className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-lg font-medium flex items-center gap-1.5 transition"
+                  >
+                    <Save className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Save Current</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setNewResumeVersionName('');
+                      setNewResumeVersionRole('');
+                      setShowSaveResumeVersionModal(true);
+                    }}
+                    className="px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 rounded-lg font-semibold flex items-center gap-1.5 transition"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Save as New Version</span>
+                  </button>
+
+                  <button
+                    onClick={handleDownloadTexFile}
+                    className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-lg font-medium flex items-center gap-1.5 transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>.tex</span>
+                  </button>
+
+                  <button
+                    onClick={handlePrintResume}
+                    className="px-4 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm transition"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Export / Print PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
 
+            {/* Split Pane: Left LaTeX Code Editor | Right Live Rendered A4 Paper */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-              {/* Left Editor */}
-              <div className="xl:col-span-5 space-y-4">
-                <div className="bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-3 text-xs">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[11px] text-stone-500 mb-1">Font</label>
-                      <select
-                        value={resumeData.settings.fontFamily}
-                        onChange={(e) => setResumeData({ ...resumeData, settings: { ...resumeData.settings, fontFamily: e.target.value } })}
-                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5"
-                      >
-                        <option value="serif">Computer Modern / Times</option>
-                        <option value="garamond">Garamond</option>
-                        <option value="sans">Inter Sans</option>
-                        <option value="mono">JetBrains Mono</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-stone-500 mb-1">Size</label>
-                      <select
-                        value={resumeData.settings.fontSize}
-                        onChange={(e) => setResumeData({ ...resumeData, settings: { ...resumeData.settings, fontSize: e.target.value } })}
-                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5"
-                      >
-                        <option value="sm">Compact (9.5 pt)</option>
-                        <option value="base">Standard (10.5 pt)</option>
-                        <option value="lg">Relaxed (11.5 pt)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-stone-500 mb-1">Spacing</label>
-                      <select
-                        value={resumeData.settings.spacing || 'compact'}
-                        onChange={(e) => setResumeData({ ...resumeData, settings: { ...resumeData.settings, spacing: e.target.value } })}
-                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-1.5"
-                      >
-                        <option value="compact">Compact (1 Page)</option>
-                        <option value="normal">Standard</option>
-                      </select>
-                    </div>
+              {/* Left 5 Cols: Scrollable LaTeX Code IDE */}
+              <div className="xl:col-span-5 flex flex-col h-[780px] bg-[#161B26] rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
+                <div className="px-4 py-2.5 bg-stone-50 dark:bg-[#151D2C] border-b border-stone-200 dark:border-stone-800 flex items-center justify-between text-xs font-mono shrink-0">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">resume.tex</span>
+                    <span className="text-[11px] text-stone-400">{latexResumeCode.split('\n').length} lines</span>
                   </div>
-
-                  <input
-                    type="text"
-                    value={resumeData.header.fullName}
-                    onChange={(e) => setResumeData({ ...resumeData, header: { ...resumeData.header, fullName: e.target.value } })}
-                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-bold"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={resumeData.header.location}
-                      onChange={(e) => setResumeData({ ...resumeData, header: { ...resumeData.header, location: e.target.value } })}
-                      className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2"
-                    />
-                    <input
-                      type="text"
-                      value={resumeData.header.phone}
-                      onChange={(e) => setResumeData({ ...resumeData, header: { ...resumeData.header, phone: e.target.value } })}
-                      className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-mono"
-                    />
-                  </div>
+                  <button
+                    onClick={() => {
+                      setLatexResumeCode(DEFAULT_LATEX_RESUME);
+                      showToast('Loaded default 10pt LaTeX resume');
+                    }}
+                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Default Template</span>
+                  </button>
                 </div>
 
-                {/* Section Editors */}
-                <div className="space-y-2">
-                  {resumeData.sections.map((section, sIndex) => (
-                    <div key={section.id} className="bg-white dark:bg-[#121824] rounded-xl border border-stone-200 dark:border-stone-800 p-3 text-xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <button
-                          onClick={() => setActiveResumeSectionId(activeResumeSectionId === section.id ? null : section.id)}
-                          className="font-bold text-left flex-1"
-                        >
-                          {section.title}
-                        </button>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => moveResumeSection(sIndex, -1)} className="p-1 text-stone-400 hover:text-stone-700"><MoveUp className="w-3 h-3" /></button>
-                          <button onClick={() => moveResumeSection(sIndex, 1)} className="p-1 text-stone-400 hover:text-stone-700"><MoveDown className="w-3 h-3" /></button>
-                        </div>
-                      </div>
-                      {activeResumeSectionId === section.id && section.type === 'entries' && (
-                        <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-                          {section.entries.map((entry, eIndex) => (
-                            <div key={entry.id} className="space-y-1.5 p-2 bg-stone-50 dark:bg-stone-900/50 rounded-lg">
-                              <input
-                                type="text"
-                                value={entry.primaryTitle}
-                                onChange={(e) => {
-                                  const updated = [...resumeData.sections];
-                                  updated[sIndex].entries[eIndex].primaryTitle = e.target.value;
-                                  setResumeData({ ...resumeData, sections: updated });
-                                }}
-                                className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5 font-semibold"
-                              />
-                              {(entry.bullets || []).map((b, bIdx) => (
-                                <textarea
-                                  key={bIdx}
-                                  rows={2}
-                                  value={b}
-                                  onChange={(e) => {
-                                    const updated = [...resumeData.sections];
-                                    updated[sIndex].entries[eIndex].bullets[bIdx] = e.target.value;
-                                    setResumeData({ ...resumeData, sections: updated });
-                                  }}
-                                  className="w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-700 rounded p-1.5"
-                                />
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <textarea
+                  value={latexResumeCode}
+                  onChange={(e) => setLatexResumeCode(e.target.value)}
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="flex-1 w-full p-4 font-mono text-xs leading-relaxed bg-[#161B26] text-stone-100 resize-none focus:outline-none overflow-auto whitespace-pre"
+                  placeholder="% Paste your complete LaTeX resume code here..."
+                />
+
+                <div className="px-4 py-1.5 bg-stone-100/90 dark:bg-[#151D2C] border-t border-stone-200 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-500 font-mono shrink-0">
+                  <span>Supports \section, \textbf, \textit, \href, \hfill, itemize</span>
+                  <span>{parsedLatexResume.basePt}pt A4</span>
                 </div>
               </div>
 
-              {/* Right A4 Sheet Preview */}
+              {/* Right 7 Cols: Live Rendered A4 Paper Sheet */}
               <div className="xl:col-span-7 flex flex-col items-center">
-                <div
-                  id="resume-printable-document"
-                  className={`w-full max-w-[800px] bg-white text-black shadow-2xl rounded-sm p-6 sm:p-8 border border-stone-300 ${
-                    resumeData.settings.fontSize === 'sm' ? 'text-[12px] leading-[1.28]' :
-                    resumeData.settings.fontSize === 'lg' ? 'text-[14px] leading-[1.42]' :
-                    'text-[12.8px] leading-[1.32]'
-                  }`}
-                  style={{ fontFamily: getSelectedFontFamilyCss(resumeData.settings.fontFamily) }}
-                >
-                  <div className="text-center space-y-0.5 pb-1">
-                    <h1 className="text-2xl font-normal tracking-wide uppercase text-black">
-                      {resumeData.header.fullName}
-                    </h1>
-                    <div className="text-[11.5px] text-stone-700 flex flex-wrap items-center justify-center gap-x-2">
-                      <span>{resumeData.header.location}</span>
-                      <span>&bull;</span>
-                      <span>{resumeData.header.phone}</span>
-                      <span>&bull;</span>
-                      <a href={`mailto:${resumeData.header.email}`} className="underline">{resumeData.header.email}</a>
-                      {resumeData.header.links.map(link => (
-                        <React.Fragment key={link.id}>
-                          <span>&bull;</span>
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="underline">{link.label}</a>
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
+                <div className="w-full max-w-[794px] flex items-center justify-between pb-2 px-1 text-xs text-stone-500 font-mono">
+                  <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Live Rendered A4 Sheet ({parsedLatexResume.basePt}pt Computer Modern)</span>
+                  </span>
+                  <span>
+                    Margins: {parsedLatexResume.margins.top} / {parsedLatexResume.margins.left}
+                  </span>
+                </div>
 
-                  <div className={`mt-1 ${resumeData.settings.spacing === 'compact' ? 'space-y-2' : 'space-y-3'}`}>
-                    {resumeData.sections.map(section => (
-                      <div key={section.id} className="space-y-1">
-                        <div className="border-b border-black pb-0.5 section-header">
-                          <h2 className="text-[12px] font-bold uppercase tracking-wider text-black">{section.title}</h2>
-                        </div>
-                        {section.type === 'entries' && (
-                          <div className="space-y-1.5">
-                            {section.entries.map(entry => (
-                              <div key={entry.id} className="space-y-0.5">
-                                <div className="flex items-baseline justify-between font-bold text-black">
-                                  <span>{entry.primaryTitle}</span>
-                                  <span className="font-mono text-[11px] font-medium">{entry.primaryRight}</span>
-                                </div>
-                                {entry.subTitle && (
-                                  <div className="flex items-baseline justify-between text-[11.5px] italic text-stone-800">
-                                    <span>{entry.subTitle}</span>
-                                    <span className="not-italic text-[11px]">{entry.subRight}</span>
-                                  </div>
-                                )}
-                                {entry.bullets && entry.bullets.length > 0 && (
-                                  <ul className="list-disc ml-4 space-y-0.5 text-stone-900">
-                                    {entry.bullets.map((bullet, bIdx) => (
-                                      <li key={bIdx}>{bullet}</li>
-                                    ))}
-                                  </ul>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {section.type === 'skills_grid' && (
-                          <div className="space-y-0.5 text-stone-900">
-                            {section.skillCategories.map((cat, cIdx) => (
-                              <div key={cIdx}>
-                                <span className="font-bold text-black">{cat.label}: </span>
-                                <span>{cat.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {section.type === 'bullet_list' && (
-                          <ul className="list-disc ml-4 space-y-0.5 text-stone-900">
-                            {section.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
+                <div className="w-full overflow-x-auto flex justify-center pb-2">
+                  <div
+                    id="resume-printable-document"
+                    className="w-full max-w-[794px] min-h-[1123px] bg-white text-black shadow-2xl border border-stone-300"
+                    style={{
+                      fontFamily: "'Computer Modern Serif', 'Latin Modern Roman', 'CMU Serif', 'Tinos', 'Times New Roman', serif",
+                      fontSize: `${parsedLatexResume.basePt}pt`,
+                      lineHeight: 1.24,
+                      paddingTop: parsedLatexResume.margins.top,
+                      paddingBottom: parsedLatexResume.margins.bottom,
+                      paddingLeft: parsedLatexResume.margins.left,
+                      paddingRight: parsedLatexResume.margins.right
+                    }}
+                  >
+                    {parsedLatexResume.blocks}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Dedicated Stored Resume Versions Vault Below the Editor & Preview */}
+            <div className="bg-white dark:bg-[#121824] p-5 sm:p-6 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100 dark:border-stone-800">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <FolderOpen className="w-4 h-4 text-indigo-500" />
+                    <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                      Stored Resume Versions Vault ({resumeVersions.length})
+                    </h3>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Manage role-specific versions of your resume (Backend, Cloud, Applied AI). Click any card to load it into the LaTeX editor above.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setNewResumeVersionName('');
+                    setNewResumeVersionRole('');
+                    setShowSaveResumeVersionModal(true);
+                  }}
+                  className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Save Current as New Version</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {resumeVersions.map(ver => {
+                  const isSelected = ver.id === activeResumeVersionId;
+                  const lineCount = (ver.latexCode || '').split('\n').length;
+                  return (
+                    <div
+                      key={ver.id}
+                      onClick={() => handleLoadResumeVersion(ver)}
+                      className={`group rounded-2xl border p-4 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                        isSelected
+                          ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 border-stone-900 dark:border-stone-100 shadow-md ring-2 ring-stone-900/20 dark:ring-stone-100/30'
+                          : 'bg-stone-50/70 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {isSelected ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500 text-white">
+                                ACTIVE IN EDITOR
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                                SAVED VERSION
+                              </span>
+                            )}
+                            <span className={`text-[10px] font-mono ${isSelected ? 'opacity-70' : 'text-stone-400'}`}>
+                              {lineCount} lines
+                            </span>
+                          </div>
+
+                          {resumeVersions.length > 1 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteResumeVersion(ver.id);
+                              }}
+                              className={`p-1 rounded-lg transition ${
+                                isSelected
+                                  ? 'hover:bg-white/20 text-stone-300 dark:text-stone-600'
+                                  : 'text-stone-400 hover:text-rose-500 hover:bg-rose-500/10'
+                              }`}
+                              title="Delete version"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-sm leading-snug">{ver.name}</h4>
+                          <p className={`text-xs mt-0.5 ${isSelected ? 'opacity-80' : 'text-stone-500 dark:text-stone-400'}`}>
+                            {ver.targetRole}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={`pt-2.5 border-t flex items-center justify-between text-[11px] font-mono ${
+                        isSelected
+                          ? 'border-white/15 dark:border-black/15'
+                          : 'border-stone-200/80 dark:border-stone-800'
+                      }`}>
+                        <span className={isSelected ? 'opacity-75' : 'text-stone-400'}>
+                          {ver.updatedAt}
+                        </span>
+                        <span className={`font-semibold flex items-center gap-1 ${
+                          isSelected
+                            ? 'text-emerald-300 dark:text-emerald-700'
+                            : 'text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform'
+                        }`}>
+                          <span>{isSelected ? 'Editing Now' : 'Load in Editor'}</span>
+                          {!isSelected && <ChevronRight className="w-3.5 h-3.5" />}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -5301,47 +5866,101 @@ export default function App() {
                 <div className="space-y-2.5">
                   <span className="block text-stone-500 font-medium">
                     {sqlDataMode === 'insert'
-                      ? 'Column Values (leave blank for NULL / auto-increment):'
-                      : 'New Values to Set (only filled columns will be updated):'}
+                      ? 'Column Values (leave blank for NULL):'
+                      : 'New Column Values to SET (leave blank to keep unchanged):'}
                   </span>
-                  {schema.columns.map(col => (
-                    <div key={col.name} className="grid grid-cols-3 gap-2 items-center">
-                      <label className="font-mono font-semibold text-stone-700 dark:text-stone-300 truncate">
-                        {col.name} <span className="text-[10px] text-stone-400">({col.type})</span>
-                      </label>
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {schema.columns.map(col => (
+                      <div key={col.name} className="flex items-center gap-2">
+                        <span className="w-32 font-mono font-semibold text-stone-700 dark:text-stone-300 truncate" title={col.name}>
+                          {col.pk ? '🔑 ' : ''}{col.name}
+                          <span className="text-[10px] text-stone-400 ml-1">({col.type})</span>
+                        </span>
+                        <input
+                          type="text"
+                          value={sqlRowValues[col.name] || ''}
+                          onChange={(e) => setSqlRowValues({ ...sqlRowValues, [col.name]: e.target.value })}
+                          placeholder={col.type === 'INTEGER' || col.type === 'REAL' ? '0' : 'value...'}
+                          className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-mono"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {sqlDataMode === 'update' && (
+                    <div className="pt-1">
+                      <label className="block text-stone-500 font-medium mb-1">WHERE Condition (optional, e.g. emp_id = 101)</label>
                       <input
                         type="text"
-                        value={sqlRowValues[col.name] || ''}
-                        onChange={(e) => setSqlRowValues({ ...sqlRowValues, [col.name]: e.target.value })}
-                        placeholder={sqlDataMode === 'insert' ? `Enter ${col.name}...` : `New ${col.name} (optional)`}
-                        className="col-span-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-mono"
+                        value={sqlWhereClause}
+                        onChange={(e) => setSqlWhereClause(e.target.value)}
+                        placeholder="e.g. id = 1"
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-2 font-mono"
                       />
                     </div>
-                  ))}
+                  )}
                 </div>
               );
             })()}
-
-            {sqlDataMode === 'update' && (
-              <div>
-                <label className="block text-stone-500 font-medium mb-1">WHERE Condition (e.g. emp_id = 101)</label>
-                <input
-                  type="text"
-                  value={sqlWhereClause}
-                  onChange={(e) => setSqlWhereClause(e.target.value)}
-                  placeholder="emp_id = 101"
-                  className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono"
-                />
-              </div>
-            )}
 
             <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
               <button onClick={() => setModalSqlDataOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
               <button
                 onClick={handleExecuteSqlRowAction}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold"
+                className={`px-4 py-2 rounded-xl font-semibold ${
+                  sqlDataMode === 'insert'
+                    ? 'bg-amber-500 hover:bg-amber-400 text-stone-950'
+                    : 'bg-purple-600 hover:bg-purple-500 text-white'
+                }`}
               >
                 {sqlDataMode === 'insert' ? 'Insert Row' : 'Update Rows'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Save New Resume Version */}
+      {showSaveResumeVersionModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-indigo-500" />
+                <span>Save New Resume Version</span>
+              </h3>
+              <button onClick={() => setShowSaveResumeVersionModal(false)} className="text-stone-400 hover:text-stone-600">✕</button>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Version Name *</label>
+              <input
+                type="text"
+                value={newResumeVersionName}
+                onChange={(e) => setNewResumeVersionName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveResumeVersion()}
+                placeholder="e.g. Backend Distributed Systems v2, AI / RAG Focus"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Target Role / Focus Tag</label>
+              <input
+                type="text"
+                value={newResumeVersionRole}
+                onChange={(e) => setNewResumeVersionRole(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveResumeVersion()}
+                placeholder="e.g. SDE II • Java, Spring Boot, Kafka"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setShowSaveResumeVersionModal(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button onClick={handleSaveResumeVersion} className="px-4 py-2 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 rounded-xl font-semibold">
+                Save Version
               </button>
             </div>
           </div>
