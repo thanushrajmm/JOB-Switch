@@ -541,6 +541,8 @@ export default function App() {
   const [newResumeVersionName, setNewResumeVersionName] = useState('');
   const [newResumeVersionRole, setNewResumeVersionRole] = useState('');
   const [showSaveResumeVersionModal, setShowSaveResumeVersionModal] = useState(false);
+  const [targetJobDescription, setTargetJobDescription] = useState('');
+  const [showAtsPanel, setShowAtsPanel] = useState(true);
 
   const [activeResumeSectionId, setActiveResumeSectionId] = useState('sec-experience');
   const [activeDomainId, setActiveDomainId] = useState(() => domains[0]?.id || null);
@@ -1380,6 +1382,225 @@ export default function App() {
 
     return { blocks, basePt, margins, candidateName };
   }, [latexResumeCode]);
+
+  // ================= REAL-TIME 9-CATEGORY 100-POINT ATS & JD SCORING ENGINE =================
+  const atsAnalysis = useMemo(() => {
+    const raw = latexResumeCode || '';
+    const bodyMatch = raw.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
+    const bodyText = (bodyMatch ? bodyMatch[1] : raw)
+      .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?/g, ' ')
+      .replace(/[{}%$~\\]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const lowerBody = bodyText.toLowerCase();
+    const lowerJd = (targetJobDescription || '').toLowerCase();
+    const hasJd = targetJobDescription.trim().length > 15;
+
+    // Synonym / related-skill map for realistic ATS matching
+    const SKILL_SYNONYMS = {
+      'java': ['java', 'jdk', 'jvm', 'j2ee', 'core java'],
+      'spring boot': ['spring boot', 'spring', 'spring framework', 'spring mvc', 'spring data'],
+      'microservices': ['microservices', 'microservice', 'distributed systems', 'distributed architecture'],
+      'rest api': ['rest api', 'restful', 'rest apis', 'http api', 'web services'],
+      'mysql': ['mysql', 'sql', 'rdbms', 'relational database', 'postgresql', 'postgres'],
+      'kafka': ['kafka', 'jms', 'message queue', 'messaging queue', 'producer-consumer', 'rabbitmq'],
+      'elasticsearch': ['elasticsearch', 'elastic search', 'query dsl', 'inverted index', 'search engine'],
+      'react': ['react', 'react.js', 'reactjs', 'frontend'],
+      'vue': ['vue', 'vue.js', 'vuejs'],
+      'docker': ['docker', 'container', 'containers', 'kubernetes', 'k8s', 'ci/cd'],
+      'aws': ['aws', 'cloud', 'google cloud', 'gcp', 'azure'],
+      'git': ['git', 'github', 'version control'],
+      'junit': ['junit', 'unit test', 'integration test', 'testing', 'playwright']
+    };
+
+    const matchesSkillInResume = (term) => {
+      const t = term.toLowerCase().trim();
+      if (lowerBody.includes(t)) return true;
+      const syns = SKILL_SYNONYMS[t];
+      if (syns) return syns.some(s => lowerBody.includes(s));
+      return false;
+    };
+
+    const suggestions = [];
+
+    // ---- 1. KEYWORD MATCHING (20 points) ----
+    const defaultCoreKeywords = [
+      'java', 'spring boot', 'microservices', 'rest api', 'mysql', 'kafka',
+      'elasticsearch', 'react', 'vue', 'git', 'junit', 'web workers'
+    ];
+    let targetKeywords = defaultCoreKeywords;
+
+    if (hasJd) {
+      const stopWords = new Set([
+        'and', 'the', 'for', 'with', 'you', 'will', 'are', 'our', 'that', 'this', 'from', 'have', 'has',
+        'your', 'work', 'team', 'experience', 'years', 'year', 'role', 'skills', 'using', 'ability',
+        'strong', 'knowledge', 'good', 'understanding', 'development', 'software', 'engineer', 'engineering',
+        'systems', 'services', 'applications', 'design', 'build', 'working', 'plus', 'preferred', 'required',
+        'must', 'nice', 'into', 'across', 'both', 'all', 'other', 'such', 'well', 'high', 'scalable'
+      ]);
+      const extracted = lowerJd
+        .replace(/[^a-z0-9+#.\s-]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length >= 3 && !stopWords.has(w) && !/^\d+$/.test(w));
+      const freq = {};
+      extracted.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+      const uniqueSorted = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([word]) => word);
+      if (uniqueSorted.length > 0) targetKeywords = uniqueSorted;
+    }
+
+    const matchedKeywords = targetKeywords.filter(kw => matchesSkillInResume(kw));
+    const missingKeywords = targetKeywords.filter(kw => !matchesSkillInResume(kw));
+    const keywordPct = targetKeywords.length > 0 ? Math.round((matchedKeywords.length / targetKeywords.length) * 100) : 100;
+    const keywordPoints = Math.round((keywordPct / 100) * 20);
+    if (missingKeywords.length > 0 && hasJd) {
+      suggestions.push(`Incorporate missing JD keywords naturally: ${missingKeywords.slice(0, 5).join(', ')}.`);
+    }
+
+    // ---- 2. TECHNICAL SKILLS MATCH (15 points) ----
+    const techBuckets = {
+      languages: ['java', 'python', 'typescript', 'javascript', 'sql'],
+      frameworks: ['spring boot', 'react', 'vue', 'junit', 'playwright'],
+      databases: ['elasticsearch', 'mysql', 'sql', 'redis', 'postgresql'],
+      toolsAndCloud: ['git', 'jms', 'kafka', 'docker', 'google cloud', 'aws', 'rest']
+    };
+    const techHits = Object.values(techBuckets).flat().filter(s => matchesSkillInResume(s));
+    const techSkillPct = Math.min(100, Math.round((techHits.length / 12) * 100));
+    const techSkillPoints = Math.min(15, Math.round((techSkillPct / 100) * 15));
+    if (techSkillPoints < 12) {
+      suggestions.push('Expand Technical Skills with cloud/container tools (Docker, AWS, Redis) if applicable.');
+    }
+
+    // ---- 3. EXPERIENCE RELEVANCE (15 points) ----
+    const hasDates = /\b(0?[1-9]|1[0-2])\/20\d{2}\b|\b20\d{2}\s*[-–]+\s*(present|20\d{2})/i.test(raw);
+    const hasYoeMention = /(\d+(?:\.\d+)?\+?\s*years?)/i.test(bodyText);
+    const hasActionResponsibilities = /(architected|engineered|built|developed|implemented|designed)/i.test(bodyText);
+    const expSignals = (hasDates ? 5 : 0) + (hasYoeMention ? 5 : 0) + (hasActionResponsibilities ? 5 : 0);
+    const experiencePoints = Math.min(15, expSignals);
+    const experiencePct = Math.round((experiencePoints / 15) * 100);
+    if (!hasDates) suggestions.push('Use standardized MM/YYYY employment dates (e.g. 02/2025 -- Present) for ATS tenure parsing.');
+
+    // ---- 4. ATS PARSEABILITY (15 points) ----
+    const hasGlyphUnicode = /\\pdfgentounicode\s*=\s*1/.test(raw);
+    const hasName = /\\textbf\{[A-Z\s.]{3,}\}/.test(raw);
+    const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(raw);
+    const hasPhone = /(\+?\d[\d\s-]{8,})/.test(raw);
+    const hasStandardHeaders = /\\section\*?\{Experience\}/i.test(raw) && /\\section\*?\{Education\}/i.test(raw);
+    const parsePoints =
+      (hasGlyphUnicode ? 4 : 0) +
+      (hasName ? 3 : 0) +
+      (hasEmail ? 3 : 0) +
+      (hasPhone ? 2 : 0) +
+      (hasStandardHeaders ? 3 : 0);
+    const parsePct = Math.round((parsePoints / 15) * 100);
+    if (!hasGlyphUnicode) suggestions.push('Add \\pdfgentounicode=1 in the LaTeX preamble so ligatures (fi, fl) extract cleanly.');
+
+    // ---- 5. FORMATTING AND READABILITY (10 points) ----
+    const isSingleColumn = !/\\begin\{(multicols|minipage)\}/.test(raw);
+    const hasCleanMargins = /\\usepackage\[[^\]]*\]\{geometry\}/.test(raw);
+    const hasStandardFont = /\\usepackage\{lmodern\}|\\documentclass\[(10|11)pt/.test(raw);
+    const wordCount = bodyText ? bodyText.split(/\s+/).length : 0;
+    const isOnePageDense = wordCount >= 220 && wordCount <= 680;
+    const formatPoints =
+      (isSingleColumn ? 3 : 0) +
+      (hasCleanMargins ? 2 : 0) +
+      (hasStandardFont ? 3 : 0) +
+      (isOnePageDense ? 2 : 1);
+    const readabilityPct = Math.round((formatPoints / 10) * 100);
+    if (wordCount > 680) suggestions.push('Trim resume word count under ~650 words so it fits strictly on 1 A4 page.');
+
+    // ---- 6. JOB TITLE RELEVANCE (5 points) ----
+    const titleTerms = ['software engineer', 'software developer', 'backend engineer', 'full-stack', 'java developer', 'sde'];
+    const titleMatch = titleTerms.some(t => lowerBody.includes(t) && (!hasJd || lowerJd.includes(t) || lowerBody.includes('software engineer')));
+    const jobTitlePoints = titleMatch ? 5 : 3;
+
+    // ---- 7. EDUCATION AND CERTIFICATIONS (5 points) ----
+    const hasDegree = /(bachelor|b\.e\.|b\.tech|computer science|engineering|university)/i.test(bodyText);
+    const hasCerts = /\\section\*?\{Certifications?\}/i.test(raw) || /(certified|certificate|anthropic|aws|udemy)/i.test(bodyText);
+    const eduCertPoints = (hasDegree ? 3 : 0) + (hasCerts ? 2 : 0);
+
+    // ---- 8. ACHIEVEMENTS AND IMPACT (10 points) ----
+    const metricMatches = bodyText.match(/(\d+(?:\.\d+)?\s*%|\d+[xX]\b|\d+[kKmMbB]\+?|\d+\+\s*(?:years|records|skus|indices|services|apis))/g) || [];
+    const metricCount = metricMatches.length;
+    const actionVerbs = [
+      'architected', 'engineered', 'built', 'developed', 'optimized', 'reduced',
+      'accelerated', 'implemented', 'designed', 'scaled', 'automated', 'authored',
+      'integrated', 'cut', 'improved', 'delivered', 'deployed', 'profiled'
+    ];
+    const matchedVerbs = actionVerbs.filter(v => new RegExp(`\\b${v}\\b`, 'i').test(bodyText));
+    const achievementPoints = Math.min(10, Math.min(6, metricCount) + Math.min(4, Math.floor(matchedVerbs.length / 2)));
+    const achievementPct = Math.round((achievementPoints / 10) * 100);
+    if (metricCount < 6) suggestions.push('Quantify more bullets with %, latency (ms), throughput (x), or record volume (XYZ formula).');
+
+    // ---- 9. SECTION COMPLETENESS (5 points) ----
+    const essentialSections = ['summary', 'experience', 'technical skills', 'education', 'certifications'];
+    const presentSectionsCount = essentialSections.filter(sec => new RegExp(`\\\\section\\*?\\{[^}]*${sec}`, 'i').test(raw)).length;
+    const completenessPoints = Math.min(5, presentSectionsCount);
+
+    // ---- AGGREGATED 100-POINT SCORE & BAND ----
+    const totalScore = Math.min(
+      100,
+      keywordPoints +
+      techSkillPoints +
+      experiencePoints +
+      parsePoints +
+      formatPoints +
+      jobTitlePoints +
+      eduCertPoints +
+      achievementPoints +
+      completenessPoints
+    );
+
+    const scoreBand =
+      totalScore >= 90 ? { label: 'Excellent', color: 'emerald' } :
+      totalScore >= 80 ? { label: 'Very Good', color: 'emerald' } :
+      totalScore >= 70 ? { label: 'Good', color: 'amber' } :
+      totalScore >= 60 ? { label: 'Needs Improvement', color: 'amber' } :
+      { label: 'Significant Improvements Needed', color: 'rose' };
+
+    // Separate Additional Evaluation Scores (ATS Compatibility vs Job Fit)
+    const atsCompatibilityScore = Math.min(100, Math.round(((parsePoints + formatPoints + completenessPoints) / 30) * 100));
+    const jobDescriptionMatchScore = keywordPct;
+    const contentQualityScore = Math.min(100, Math.round(((achievementPoints + experiencePoints) / 25) * 100));
+
+    const categories = [
+      { name: '1. Keyword Matching', earned: keywordPoints, max: 20, detail: `${matchedKeywords.length}/${targetKeywords.length} ${hasJd ? 'JD' : 'core'} keywords (${keywordPct}%)` },
+      { name: '2. Technical Skills Match', earned: techSkillPoints, max: 15, detail: `${techHits.length} verified languages, frameworks, DBs & tools` },
+      { name: '3. Experience Relevance', earned: experiencePoints, max: 15, detail: 'Tenure dates, YOE signal & architectural ownership' },
+      { name: '4. ATS Parseability', earned: parsePoints, max: 15, detail: 'Contact extraction, standard headers & \\pdfgentounicode=1' },
+      { name: '5. Formatting & Readability', earned: formatPoints, max: 10, detail: `Single-column layout, 10pt font & ${wordCount} words` },
+      { name: '6. Job Title Relevance', earned: jobTitlePoints, max: 5, detail: 'Software Engineer / Backend & Full-Stack role alignment' },
+      { name: '7. Education & Certifications', earned: eduCertPoints, max: 5, detail: 'B.E. Computer Science & verified certifications' },
+      { name: '8. Achievements & Impact', earned: achievementPoints, max: 10, detail: `${metricCount} quantified metrics & ${matchedVerbs.length} action verbs` },
+      { name: '9. Section Completeness', earned: completenessPoints, max: 5, detail: `${presentSectionsCount}/5 core resume sections detected` }
+    ];
+
+    const subScores = [
+      { label: 'ATS Compatibility', value: atsCompatibilityScore },
+      { label: 'JD Match', value: jobDescriptionMatchScore },
+      { label: 'Technical Skills', value: techSkillPct },
+      { label: 'Experience', value: experiencePct },
+      { label: 'Content Quality', value: contentQualityScore },
+      { label: 'Achievements', value: achievementPct },
+      { label: 'Readability', value: readabilityPct },
+      { label: 'Overall Score', value: totalScore }
+    ];
+
+    return {
+      totalScore,
+      scoreBand,
+      categories,
+      subScores,
+      matchedKeywords,
+      missingKeywords,
+      hasJd,
+      wordCount,
+      metricCount,
+      suggestions
+    };
+  }, [latexResumeCode, targetJobDescription]);
 
   const handleSaveResumeVersion = () => {
     const versionTitle = newResumeVersionName.trim() || `Resume Version #${resumeVersions.length + 1}`;
@@ -4217,58 +4438,250 @@ export default function App() {
         {activeTab === 'resume' && (
           <div className="space-y-6">
             {/* Compact Top Action Bar */}
-            <div className="bg-white dark:bg-[#121824] p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">LaTeX ATS Resume Studio &amp; Version Vault</h2>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
-                      Live LaTeX &rarr; A4 Renderer
+            <div className="bg-white dark:bg-[#121824] p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">LaTeX ATS Resume Studio &amp; Version Vault</h2>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
+                    Live LaTeX &rarr; A4 Renderer
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Paste or edit your LaTeX resume code on the left to preview the rendered A4 sheet on the right and store tailored versions.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  onClick={handleUpdateCurrentResumeVersion}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1.5 transition"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Current</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setNewResumeVersionName('');
+                    setNewResumeVersionRole('');
+                    setShowSaveResumeVersionModal(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-semibold flex items-center gap-1.5 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Save as New Version</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadTexFile}
+                  className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-medium flex items-center gap-1 transition"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>.tex</span>
+                </button>
+
+                <button
+                  onClick={handlePrintResume}
+                  className="px-4 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm transition"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Export / Print PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive 9-Category 100-Point ATS Evaluation & JD Matcher */}
+            <div className="bg-white dark:bg-[#121824] p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800/80 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-mono font-extrabold border-2 ${
+                      atsAnalysis.totalScore >= 80
+                        ? 'bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                        : atsAnalysis.totalScore >= 60
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400'
+                        : 'bg-rose-500/15 border-rose-500 text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    <span className="text-lg leading-none">{atsAnalysis.totalScore}</span>
+                    <span className="text-[9px] uppercase tracking-wider opacity-80">/ 100</span>
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">
+                        ATS Resume Evaluation &amp; Job Match Report
+                      </h3>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+                          atsAnalysis.totalScore >= 80
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : atsAnalysis.totalScore >= 60
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                            : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        }`}
+                      >
+                        {atsAnalysis.scoreBand.label} ({atsAnalysis.totalScore}/100)
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      9-Category Weighted Model • {atsAnalysis.wordCount} words • {atsAnalysis.metricCount} quantified metrics • Separates ATS Compatibility from Job Fit
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowAtsPanel(!showAtsPanel)}
+                  className="px-3 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-xs font-medium text-stone-700 dark:text-stone-300 self-start sm:self-auto"
+                >
+                  {showAtsPanel ? 'Hide Evaluation Report' : 'Show Evaluation Report'}
+                </button>
+              </div>
+
+              {/* 8 Separate Dimension Sub-Scores Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                {atsAnalysis.subScores.map((sub, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2 rounded-xl bg-stone-50 dark:bg-stone-900/70 border border-stone-200/80 dark:border-stone-800 text-center"
+                  >
+                    <span className="text-[10px] text-stone-500 block truncate">{sub.label}</span>
+                    <span
+                      className={`text-xs font-mono font-extrabold ${
+                        sub.value >= 80
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : sub.value >= 60
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-rose-600 dark:text-rose-400'
+                      }`}
+                    >
+                      {sub.value}%
                     </span>
                   </div>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    Edit your LaTeX resume code on the left to preview the rendered A4 sheet on the right, and manage all saved versions in the vault below.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <button
-                    onClick={handleUpdateCurrentResumeVersion}
-                    className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-lg font-medium flex items-center gap-1.5 transition"
-                  >
-                    <Save className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Save Current</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setNewResumeVersionName('');
-                      setNewResumeVersionRole('');
-                      setShowSaveResumeVersionModal(true);
-                    }}
-                    className="px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 rounded-lg font-semibold flex items-center gap-1.5 transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Save as New Version</span>
-                  </button>
-
-                  <button
-                    onClick={handleDownloadTexFile}
-                    className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-lg font-medium flex items-center gap-1.5 transition"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>.tex</span>
-                  </button>
-
-                  <button
-                    onClick={handlePrintResume}
-                    className="px-4 py-1.5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm transition"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Export / Print PDF</span>
-                  </button>
-                </div>
+                ))}
               </div>
+
+              {showAtsPanel && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-3 border-t border-stone-100 dark:border-stone-800">
+                  {/* Left 7 Cols: 9-Category Weighted Breakdown (100 Points) */}
+                  <div className="lg:col-span-7 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                        9-Category Weighted Scoring Breakdown (100 Points)
+                      </span>
+                      <span className="text-[10px] font-mono text-stone-400">90–100 Excellent • 80–89 Very Good • 70–79 Good</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {atsAnalysis.categories.map((cat, idx) => {
+                        const pct = Math.round((cat.earned / cat.max) * 100);
+                        return (
+                          <div
+                            key={idx}
+                            className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/70 dark:border-stone-800 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-stone-800 dark:text-stone-100">{cat.name}</span>
+                              <span
+                                className={`font-mono text-[11px] font-extrabold ${
+                                  pct >= 80
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : pct >= 60
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-rose-600 dark:text-rose-400'
+                                }`}
+                              >
+                                {cat.earned}/{cat.max}
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-stone-200 dark:bg-stone-800 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <p className="text-[10px] text-stone-500 truncate" title={cat.detail}>
+                              {cat.detail}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right 5 Cols: Job Description Analyzer & Improvement Suggestions */}
+                  <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                          Job Description Analyzer (Paste Target JD)
+                        </label>
+                        {targetJobDescription && (
+                          <button
+                            onClick={() => setTargetJobDescription('')}
+                            className="text-[11px] text-rose-500 hover:underline"
+                          >
+                            Clear JD
+                          </button>
+                        )}
+                      </div>
+                      <textarea
+                        rows={4}
+                        value={targetJobDescription}
+                        onChange={(e) => setTargetJobDescription(e.target.value)}
+                        placeholder="Paste the job description here (Workday, Greenhouse, Lever, LinkedIn, Naukri) to score keyword matching, technical skills, and missing terms..."
+                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div className="space-y-2 text-[11px]">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 mr-1">
+                          Matched ({atsAnalysis.matchedKeywords.length}):
+                        </span>
+                        {atsAnalysis.matchedKeywords.slice(0, 12).map(kw => (
+                          <span
+                            key={kw}
+                            className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono"
+                          >
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+
+                      {atsAnalysis.missingKeywords.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="font-semibold text-rose-600 dark:text-rose-400 mr-1">
+                            Missing ({atsAnalysis.missingKeywords.length}):
+                          </span>
+                          {atsAnalysis.missingKeywords.slice(0, 10).map(kw => (
+                            <span
+                              key={kw}
+                              className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 font-mono"
+                            >
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {atsAnalysis.suggestions.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1">
+                          <span className="font-bold text-amber-700 dark:text-amber-300 block">
+                            Improvement Suggestions:
+                          </span>
+                          {atsAnalysis.suggestions.map((sug, sIdx) => (
+                            <p key={sIdx} className="text-stone-700 dark:text-stone-300 text-[11px]">
+                              • {sug}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Split Pane: Left LaTeX Code Editor | Right Live Rendered A4 Paper */}
