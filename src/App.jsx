@@ -39,7 +39,9 @@ import {
   Save,
   Wand2,
   Database,
-  Table as TableIcon
+  Table as TableIcon,
+  Bookmark,
+  Star
 } from 'lucide-react';
 
 // ================= INITIAL STARTER BLUEPRINT (PROPEERS STRUCTURE) =================
@@ -263,6 +265,54 @@ const DEFAULT_SNIPPET_FOLDERS = [
   'Trees & Graphs',
   'Dynamic Programming',
   'SQL Queries'
+];
+
+const DEFAULT_BOOKMARK_CATEGORIES = [
+  'DSA & Algorithms',
+  'System Design & HLD',
+  'Java & Spring Boot',
+  'Databases & Search',
+  'Applied AI & ML',
+  'General Learning'
+];
+
+const DEFAULT_BOOKMARKS = [
+  {
+    id: 'bm-1',
+    title: 'NeetCode Roadmap & DSA',
+    url: 'https://neetcode.io/roadmap',
+    category: 'DSA & Algorithms',
+    notes: 'Structured blind-75 and 150 pattern-based coding interview practice.',
+    favorite: true,
+    addedAt: 'Starter'
+  },
+  {
+    id: 'bm-2',
+    title: 'ByteByteGo System Design',
+    url: 'https://bytebytego.com',
+    category: 'System Design & HLD',
+    notes: 'Visual distributed systems diagrams, caching, message queues & scaling patterns.',
+    favorite: true,
+    addedAt: 'Starter'
+  },
+  {
+    id: 'bm-3',
+    title: 'Baeldung — Java & Spring Guides',
+    url: 'https://www.baeldung.com',
+    category: 'Java & Spring Boot',
+    notes: 'Deep dives on Spring Boot, JPA, Security, Concurrency, and JVM internals.',
+    favorite: false,
+    addedAt: 'Starter'
+  },
+  {
+    id: 'bm-4',
+    title: 'Elasticsearch Official Reference',
+    url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html',
+    category: 'Databases & Search',
+    notes: 'Query DSL, aggregations, index mappings, and kNN vector search documentation.',
+    favorite: false,
+    addedAt: 'Starter'
+  }
 ];
 
 const DEFAULT_LATEX_RESUME = `\\documentclass[10pt, a4paper]{article}
@@ -862,6 +912,32 @@ export default function App() {
   const [savingSnippetLanguage, setSavingSnippetLanguage] = useState('java');
   const [newSnippetTitle, setNewSnippetTitle] = useState('');
   const [newSnippetFolder, setNewSnippetFolder] = useState('General');
+
+  // Learning Website Bookmarks State
+  const [bookmarkCategories, setBookmarkCategories] = useState(() => {
+    const saved = localStorage.getItem('omniswitch_bookmark_categories_v1');
+    return saved ? JSON.parse(saved) : DEFAULT_BOOKMARK_CATEGORIES;
+  });
+  const [bookmarks, setBookmarks] = useState(() => {
+    const saved = localStorage.getItem('omniswitch_bookmarks_v1');
+    return saved ? JSON.parse(saved) : DEFAULT_BOOKMARKS;
+  });
+  const [selectedBookmarkCategory, setSelectedBookmarkCategory] = useState('ALL');
+  const [bookmarkSearchQuery, setBookmarkSearchQuery] = useState('');
+  const [newBookmarkCategoryInput, setNewBookmarkCategoryInput] = useState('');
+  const [modalAddBookmarkOpen, setModalAddBookmarkOpen] = useState(false);
+  const [newBmTitle, setNewBmTitle] = useState('');
+  const [newBmUrl, setNewBmUrl] = useState('');
+  const [newBmCategory, setNewBmCategory] = useState('DSA & Algorithms');
+  const [newBmNotes, setNewBmNotes] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('omniswitch_bookmark_categories_v1', JSON.stringify(bookmarkCategories));
+  }, [bookmarkCategories]);
+
+  useEffect(() => {
+    localStorage.setItem('omniswitch_bookmarks_v1', JSON.stringify(bookmarks));
+  }, [bookmarks]);
 
   useEffect(() => {
     localStorage.setItem('omniswitch_java_code_v1', javaCode);
@@ -2797,6 +2873,68 @@ export default function App() {
     showToast('Snippet deleted');
   };
 
+  // Learning Website Bookmarks Handlers
+  const handleSaveNewBookmark = () => {
+    if (!newBmTitle.trim() || !newBmUrl.trim()) {
+      showToast('Please enter both website title and URL');
+      return;
+    }
+    const formattedUrl = /^https?:\/\//i.test(newBmUrl.trim())
+      ? newBmUrl.trim()
+      : `https://${newBmUrl.trim()}`;
+    const chosenCat = newBmCategory || 'General Learning';
+    if (!bookmarkCategories.includes(chosenCat)) {
+      setBookmarkCategories([...bookmarkCategories, chosenCat]);
+    }
+    const newItem = {
+      id: 'bm-' + Date.now(),
+      title: newBmTitle.trim(),
+      url: formattedUrl,
+      category: chosenCat,
+      notes: newBmNotes.trim(),
+      favorite: false,
+      addedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+    setBookmarks([newItem, ...bookmarks]);
+    setNewBmTitle('');
+    setNewBmUrl('');
+    setNewBmNotes('');
+    setModalAddBookmarkOpen(false);
+    playChime();
+    showToast(`Bookmarked "${newItem.title}" under ${chosenCat}`);
+  };
+
+  const handleToggleFavoriteBookmark = (id) => {
+    setBookmarks(bookmarks.map(b => (b.id === id ? { ...b, favorite: !b.favorite } : b)));
+  };
+
+  const handleDeleteBookmark = (id) => {
+    setBookmarks(bookmarks.filter(b => b.id !== id));
+    showToast('Bookmark removed');
+  };
+
+  const handleCreateBookmarkCategory = () => {
+    const name = newBookmarkCategoryInput.trim();
+    if (!name || bookmarkCategories.includes(name)) return;
+    setBookmarkCategories([...bookmarkCategories, name]);
+    setNewBookmarkCategoryInput('');
+    showToast(`Added category "${name}"`);
+  };
+
+  const handleDeleteBookmarkCategory = (catName) => {
+    if (bookmarkCategories.length <= 1) {
+      showToast('Keep at least one bookmark category');
+      return;
+    }
+    const fallback = bookmarkCategories.find(c => c !== catName) || 'General Learning';
+    setBookmarks(bookmarks.map(b => (b.category === catName ? { ...b, category: fallback } : b)));
+    setBookmarkCategories(bookmarkCategories.filter(c => c !== catName));
+    if (selectedBookmarkCategory === catName) {
+      setSelectedBookmarkCategory('ALL');
+    }
+    showToast(`Deleted category "${catName}"`);
+  };
+
   // Shared font family resolver ensuring parity between preview and PDF
   const getSelectedFontFamilyCss = (fontKey) => {
     switch (fontKey) {
@@ -3638,7 +3776,9 @@ export default function App() {
       latexResumeCode,
       resumeVersions,
       savedSnippets,
-      snippetFolders
+      snippetFolders,
+      bookmarks,
+      bookmarkCategories
     };
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
     const dlAnchor = document.createElement('a');
@@ -3667,6 +3807,8 @@ export default function App() {
         if (parsed.resumeVersions) setResumeVersions(parsed.resumeVersions);
         if (parsed.savedSnippets) setSavedSnippets(parsed.savedSnippets);
         if (parsed.snippetFolders) setSnippetFolders(parsed.snippetFolders);
+        if (parsed.bookmarks) setBookmarks(parsed.bookmarks);
+        if (parsed.bookmarkCategories) setBookmarkCategories(parsed.bookmarkCategories);
         playChime();
         alert('All data restored successfully from JSON backup!');
       } catch (err) {
@@ -3744,6 +3886,24 @@ export default function App() {
       return folderMatch && searchMatch;
     });
   }, [savedSnippets, selectedSnippetFolder, snippetSearchQuery]);
+
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks
+      .filter(b => {
+        const catMatch =
+          selectedBookmarkCategory === 'ALL' ||
+          (selectedBookmarkCategory === 'FAVORITES' ? b.favorite : (b.category || 'General Learning') === selectedBookmarkCategory);
+        const q = bookmarkSearchQuery.trim().toLowerCase();
+        const searchMatch =
+          !q ||
+          b.title.toLowerCase().includes(q) ||
+          b.url.toLowerCase().includes(q) ||
+          (b.notes || '').toLowerCase().includes(q) ||
+          (b.category || '').toLowerCase().includes(q);
+        return catMatch && searchMatch;
+      })
+      .sort((a, b) => Number(Boolean(b.favorite)) - Number(Boolean(a.favorite)));
+  }, [bookmarks, selectedBookmarkCategory, bookmarkSearchQuery]);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0B0F17] text-stone-900 dark:text-stone-100 font-sans transition-colors duration-200">
@@ -3827,7 +3987,8 @@ export default function App() {
               { id: 'flashcards', label: 'Interview Prep', icon: Sparkles },
               { id: 'compiler', label: 'Java Playground', icon: Code },
               { id: 'sql', label: 'SQL Playground', icon: Database },
-              { id: 'snippets', label: `Saved Snippets (${savedSnippets.length})`, icon: FolderOpen }
+              { id: 'snippets', label: `Saved Snippets (${savedSnippets.length})`, icon: FolderOpen },
+              { id: 'bookmarks', label: `Learning Bookmarks (${bookmarks.length})`, icon: Bookmark }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -6204,9 +6365,324 @@ export default function App() {
           </div>
         )}
 
+        {/* 11. LEARNING WEBSITES BOOKMARKS VAULT (CATEGORIZED) */}
+        {activeTab === 'bookmarks' && (
+          <div className="space-y-6">
+            {/* Top Banner */}
+            <div className="bg-white dark:bg-[#121824] p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-emerald-500" />
+                    <span>Favorite Learning Websites &amp; Resource Bookmarks</span>
+                  </h2>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold">
+                    {bookmarks.length} Saved
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Bookmark documentation, engineering blogs, system design guides, and tutorials organized by category.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  value={bookmarkSearchQuery}
+                  onChange={(e) => setBookmarkSearchQuery(e.target.value)}
+                  placeholder="Search websites, URLs, notes..."
+                  className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    setNewBmTitle('');
+                    setNewBmUrl('');
+                    setNewBmNotes('');
+                    setNewBmCategory(
+                      selectedBookmarkCategory !== 'ALL' && selectedBookmarkCategory !== 'FAVORITES'
+                        ? selectedBookmarkCategory
+                        : bookmarkCategories[0] || 'General Learning'
+                    );
+                    setModalAddBookmarkOpen(true);
+                  }}
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Website Bookmark</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Category Sidebar & Categorized Bookmarks Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Categories Sidebar */}
+              <div className="lg:col-span-3 bg-white dark:bg-[#121824] p-4 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-3 text-xs">
+                <span className="font-bold uppercase tracking-wider text-stone-400 block">Categories</span>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setSelectedBookmarkCategory('ALL')}
+                    className={`w-full text-left px-3 py-2 rounded-xl font-medium flex items-center justify-between transition ${
+                      selectedBookmarkCategory === 'ALL'
+                        ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                        : 'hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    <span>All Websites</span>
+                    <span className="font-mono text-[11px]">{bookmarks.length}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedBookmarkCategory('FAVORITES')}
+                    className={`w-full text-left px-3 py-2 rounded-xl font-medium flex items-center justify-between transition ${
+                      selectedBookmarkCategory === 'FAVORITES'
+                        ? 'bg-amber-500 text-stone-950 font-bold'
+                        : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-amber-600 dark:text-amber-400'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span>Starred Favorites</span>
+                    </span>
+                    <span className="font-mono text-[11px]">{bookmarks.filter(b => b.favorite).length}</span>
+                  </button>
+
+                  <div className="pt-1.5 border-t border-stone-100 dark:border-stone-800/80 space-y-1">
+                    {bookmarkCategories.map(cat => {
+                      const count = bookmarks.filter(b => (b.category || 'General Learning') === cat).length;
+                      const isSel = selectedBookmarkCategory === cat;
+                      return (
+                        <div
+                          key={cat}
+                          onClick={() => setSelectedBookmarkCategory(cat)}
+                          className={`w-full px-3 py-2 rounded-xl font-medium flex items-center justify-between cursor-pointer transition group ${
+                            isSel
+                              ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                              : 'hover:bg-stone-100 dark:hover:bg-stone-800'
+                          }`}
+                        >
+                          <span className="truncate pr-2">{cat}</span>
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <span className="font-mono text-[11px]">{count}</span>
+                            {bookmarkCategories.length > 1 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteBookmarkCategory(cat);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-rose-500 transition"
+                                title="Delete category"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Add Custom Category */}
+                <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex gap-1.5">
+                  <input
+                    type="text"
+                    value={newBookmarkCategoryInput}
+                    onChange={(e) => setNewBookmarkCategoryInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateBookmarkCategory()}
+                    placeholder="New category..."
+                    className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  />
+                  <button
+                    onClick={handleCreateBookmarkCategory}
+                    className="px-2.5 py-1.5 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 rounded-lg font-semibold"
+                    title="Create Category"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Bookmarks Cards Grid */}
+              <div className="lg:col-span-9">
+                {filteredBookmarks.length === 0 ? (
+                  <div className="bg-white dark:bg-[#121824] p-12 rounded-2xl border border-dashed border-stone-300 dark:border-stone-800 text-center space-y-2">
+                    <Globe className="w-8 h-8 text-stone-300 dark:text-stone-700 mx-auto" />
+                    <p className="text-xs font-semibold text-stone-600 dark:text-stone-300">No websites in this category yet</p>
+                    <p className="text-[11px] text-stone-400">Click "+ Add Website Bookmark" to save your favorite tutorials, docs, and blogs.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredBookmarks.map(bm => {
+                      let hostname = bm.url;
+                      try {
+                        hostname = new URL(bm.url).hostname.replace(/^www\./, '');
+                      } catch (_) {}
+
+                      return (
+                        <div
+                          key={bm.id}
+                          className="bg-white dark:bg-[#121824] rounded-2xl border border-stone-200 dark:border-stone-800 p-4 flex flex-col justify-between space-y-3 shadow-sm hover:border-stone-400 dark:hover:border-stone-600 transition"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 truncate">
+                                {bm.category || 'General Learning'}
+                              </span>
+
+                              <div className="flex items-center space-x-1 shrink-0">
+                                <button
+                                  onClick={() => handleToggleFavoriteBookmark(bm.id)}
+                                  className={`p-1 rounded-lg transition ${
+                                    bm.favorite
+                                      ? 'text-amber-500'
+                                      : 'text-stone-400 hover:text-amber-500'
+                                  }`}
+                                  title={bm.favorite ? 'Remove from Favorites' : 'Star as Favorite'}
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${bm.favorite ? 'fill-current' : ''}`} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteBookmark(bm.id)}
+                                  className="p-1 text-stone-400 hover:text-rose-500 rounded-lg transition"
+                                  title="Delete Bookmark"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div>
+                              <a
+                                href={bm.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-bold text-sm text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition line-clamp-1 block"
+                              >
+                                {bm.title}
+                              </a>
+                              <span className="text-[11px] font-mono text-stone-400 block truncate mt-0.5">
+                                {hostname}
+                              </span>
+                            </div>
+
+                            {bm.notes && (
+                              <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                                {bm.notes}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs">
+                            <select
+                              value={bm.category || 'General Learning'}
+                              onChange={(e) => {
+                                const updatedCat = e.target.value;
+                                setBookmarks(bookmarks.map(item => (item.id === bm.id ? { ...item, category: updatedCat } : item)));
+                                showToast(`Moved to ${updatedCat}`);
+                              }}
+                              className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-2 py-1 text-[10px] font-mono max-w-[130px] truncate"
+                              title="Change Category"
+                            >
+                              {bookmarkCategories.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+
+                            <a
+                              href={bm.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 font-semibold flex items-center gap-1 transition"
+                            >
+                              <span>Visit</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* ================= MODALS ================= */}
+
+      {/* Modal: Add Learning Website Bookmark */}
+      {modalAddBookmarkOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121824] border border-stone-200 dark:border-stone-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl text-xs">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+              <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                <Bookmark className="w-4 h-4 text-emerald-500" />
+                <span>Add Learning Website Bookmark</span>
+              </h3>
+              <button onClick={() => setModalAddBookmarkOpen(false)} className="text-stone-400 hover:text-stone-600">✕</button>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Website Title *</label>
+              <input
+                type="text"
+                value={newBmTitle}
+                onChange={(e) => setNewBmTitle(e.target.value)}
+                placeholder="e.g. Martin Kleppmann — Designing Data-Intensive Apps"
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Website URL *</label>
+              <input
+                type="url"
+                value={newBmUrl}
+                onChange={(e) => setNewBmUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Category *</label>
+              <select
+                value={newBmCategory}
+                onChange={(e) => setNewBmCategory(e.target.value)}
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+              >
+                {bookmarkCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-stone-500 font-medium mb-1">Notes / Key Topics Covered (Optional)</label>
+              <textarea
+                rows={3}
+                value={newBmNotes}
+                onChange={(e) => setNewBmNotes(e.target.value)}
+                placeholder="Why this site is useful (e.g. Great visual explanations of Raft consensus & Kafka partitions)..."
+                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-2.5"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button onClick={() => setModalAddBookmarkOpen(false)} className="px-3.5 py-2 text-stone-500">Cancel</button>
+              <button
+                onClick={handleSaveNewBookmark}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900 rounded-xl font-semibold"
+              >
+                Save Bookmark
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Create Custom SQL Table */}
       {modalCreateSqlTableOpen && (
